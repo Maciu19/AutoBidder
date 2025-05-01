@@ -1,4 +1,4 @@
-package com.maciu19.autobidder_api;
+package com.maciu19.autobidder.api;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;

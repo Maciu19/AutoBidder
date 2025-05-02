@@ -4,16 +4,13 @@ import KeycloackService from "./services/KeycloakService";
 function App() {
   useEffect(() => {
     const initKeycloak = async () => {
-      await KeycloackService.init();
+      await KeycloackService.getKeycloak().init();
     };
 
     initKeycloak();
   }, []);
 
-  return (
-    <>
-    </>
-  )
+  return <></>;
 }
 
 export default App;

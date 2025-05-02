@@ -39,7 +39,7 @@ class KeycloackService {
 
   public logout(): void {
     KeycloackService.getKeycloak().logout({
-      redirectUri: "http:localhost:5173",
+      redirectUri: "http://localhost:5173",
     });
   }
 }

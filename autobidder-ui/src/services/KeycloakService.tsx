@@ -1,47 +1,56 @@
 import Keycloak from "keycloak-js";
 import { UserProfile } from "../model/user-profile";
 
-class KeycloackService {
+class KeycloakService {
   private static instance: Keycloak | undefined;
-  private profile: UserProfile | undefined;
+  private static profile: UserProfile | undefined;
+  private static initialized = false;
+
 
   public static getKeycloak(): Keycloak {
-    if (!KeycloackService.instance) {
-      KeycloackService.instance = new Keycloak({
+    if (!KeycloakService.instance) {
+      KeycloakService.instance = new Keycloak({
         url: "http://localhost:9090",
         realm: "auto-bidder",
         clientId: "auto-bidder",
       });
     }
 
-    return KeycloackService.instance;
+    return KeycloakService.instance;
   }
 
-  public getProfile(): UserProfile | undefined {
-    return this.profile;
+  public static getProfile(): UserProfile | undefined {
+    return KeycloakService.profile;
   }
 
-  public async init(): Promise<void> {
-    const auth = await KeycloackService.getKeycloak().init({
+  public static getToken(): string | undefined {
+    return KeycloakService.getKeycloak().token;
+  }
+
+  public static async init(): Promise<void> {
+    if (KeycloakService.initialized) return;
+
+    const auth = await KeycloakService.getKeycloak().init({
       onLoad: "login-required",
     });
 
     if (auth) {
-      this.profile =
-        (await KeycloackService.getKeycloak().loadUserProfile()) as UserProfile;
-      this.profile.token = KeycloackService.getKeycloak().token;
+      const keycloak = KeycloakService.getKeycloak();
+
+      KeycloakService.profile = (keycloak.loadUserProfile()) as UserProfile;
+      KeycloakService.initialized = true;
     }
   }
 
   public login(): void {
-    KeycloackService.getKeycloak().login();
+    KeycloakService.getKeycloak().login();
   }
 
   public logout(): void {
-    KeycloackService.getKeycloak().logout({
+    KeycloakService.getKeycloak().logout({
       redirectUri: "http://localhost:5173",
     });
   }
 }
 
-export default KeycloackService;
+export default KeycloakService;

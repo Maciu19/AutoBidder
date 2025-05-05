@@ -1,32 +1,16 @@
 import { useEffect } from "react";
-import KeycloakService from "./services/KeycloakService";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { getKeycloak } from "./auth";
 
 function App() {
   useEffect(() => {
     const initKeycloak = async () => {
-      await KeycloakService.init();
+      await getKeycloak();
     };
 
     initKeycloak();
   }, []);
 
-  return (
-    <BrowserRouter>
-      <Routes>
-        {/* Public route */}
-        <Route path="/" element={<Home />} />
-
-        {/* Protected route */}
-        <Route element={<PrivateRoute />}>
-          <Route path="/dashboard" element={<Dashboard />} />
-        </Route>
-
-        {/* Fallback */}
-        <Route path="*" element={<NotFound />} />
-      </Routes>
-    </BrowserRouter>
-  );
+  return <></>
 }
 
 export default App;

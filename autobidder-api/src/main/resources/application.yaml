@@ -1,15 +1,27 @@
+server:
+  port: 8080
+
 spring:
+  main:
+    banner-mode: off
+
   jpa:
-    database: postgresql
     show-sql: true
-    properties:
-      hibernate:
-        format_sql: true
+    hibernate:
+      ddl-auto: none
+
   datasource:
+    driverClassName: org.postgresql.Driver
     url: jdbc:postgresql://localhost:5432/postgres
     username: postgres
     password: 1234
-    driverClassName: org.postgresql.Driver
+
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+    baseline-on-migrate: true
+    schema: public
+
   security:
     oauth2:
       resourceserver:

@@ -1,5 +1,8 @@
 package com.maciu19.autobidder.api.model;
 
+import com.maciu19.autobidder.api.model.enums.Drivetrain;
+import com.maciu19.autobidder.api.model.enums.FuelType;
+import com.maciu19.autobidder.api.model.enums.TransmissionType;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;

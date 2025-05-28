@@ -1,6 +1,6 @@
 package com.maciu19.autobidder.api.utils;
 
-import com.maciu19.autobidder.api.model.EnumString;
+import com.maciu19.autobidder.api.model.enums.EnumString;
 import jakarta.annotation.Nullable;
 
 public class EnumUtils {

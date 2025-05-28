@@ -1,5 +1,6 @@
 package com.maciu19.autobidder.api.model;
 
+import com.maciu19.autobidder.api.model.enums.VehicleModelSegment;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -36,7 +37,7 @@ public class VehicleModel {
 
     @ManyToOne(optional = false)
     @JoinColumn(name = "manufacturer_id", nullable = false)
-    private VehicleManufacturer vehicleManufacturer;
+    private Manufacturer manufacturer;
 
     @CreatedDate
     @Column(name = "created_date")

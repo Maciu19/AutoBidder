@@ -18,17 +18,17 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
                 .cors(Customizer.withDefaults())
-                .csrf(AbstractHttpConfigurer::disable)
-                .authorizeHttpRequests(req ->
-                        req.requestMatchers(
-                                "/auth/**"
-                        )
-                                .permitAll()
-                        .anyRequest()
-                                .authenticated()
-                )
-                .oauth2ResourceServer(auth ->
-                        auth.jwt(token -> token.jwtAuthenticationConverter(new KeycloakJwtAuthConverter())));
+                .csrf(AbstractHttpConfigurer::disable);
+//                .authorizeHttpRequests(req ->
+//                        req.requestMatchers(
+//                                "/auth/**"
+//                        )
+//                                .permitAll()
+//                        .anyRequest()
+//                                .authenticated()
+//                )
+//                .oauth2ResourceServer(auth ->
+//                        auth.jwt(token -> token.jwtAuthenticationConverter(new KeycloakJwtAuthConverter())));
 
 
         return http.build();

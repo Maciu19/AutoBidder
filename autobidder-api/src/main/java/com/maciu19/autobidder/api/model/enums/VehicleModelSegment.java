@@ -1,4 +1,4 @@
-package com.maciu19.autobidder.api.model;
+package com.maciu19.autobidder.api.model.enums;
 
 public enum VehicleModelSegment implements EnumString {
 

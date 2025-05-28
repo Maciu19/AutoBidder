@@ -1,7 +1,6 @@
 package com.maciu19.autobidder.api.model;
 
 import jakarta.persistence.*;
-import jakarta.validation.constraints.NotEmpty;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -16,7 +15,7 @@ import java.util.*;
 @Entity
 @Table(name = "vehicle_manufacturers")
 @NoArgsConstructor
-public class VehicleManufacturer {
+public class Manufacturer {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
@@ -26,7 +25,7 @@ public class VehicleManufacturer {
     @Column(name = "name", nullable = false, unique = true)
     private String name;
 
-    @OneToMany(mappedBy = "vehicleManufacturer", cascade = CascadeType.REMOVE, orphanRemoval = true)
+    @OneToMany(mappedBy = "manufacturer", cascade = CascadeType.REMOVE, orphanRemoval = true)
     private Set<VehicleModel> vehicleModels = new LinkedHashSet<>();
 
     @CreatedDate
@@ -36,4 +35,8 @@ public class VehicleManufacturer {
     @LastModifiedDate
     @Column(name = "last_modified_date")
     private Instant lastModifiedDate;
+
+    public Manufacturer(String name) {
+        this.name = name;
+    }
 }

@@ -9,7 +9,9 @@ import java.util.UUID;
 
 @Getter
 @Setter
-@Table(name = "vehicle_engine_options")
+@Table(name = "vehicle_engine_options", indexes = {
+        @Index(name = "idx_vehicleengineoption", columnList = "vehicle_model_generation_id, name")
+})
 @Entity
 @NoArgsConstructor
 public class VehicleEngineOption {
@@ -24,6 +26,10 @@ public class VehicleEngineOption {
 
     @Column(name = "cylinders")
     private Integer cylinders;
+
+    @ManyToOne(optional = false)
+    @JoinColumn(name = "vehicle_model_generation_id", nullable = false)
+    private VehicleModelGeneration vehicleModelGeneration;
 
     @Column(name = "displacement")
     private Integer displacement;

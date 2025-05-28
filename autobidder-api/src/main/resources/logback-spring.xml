@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+
+    <!-- Where logs are stored -->
+    <property name="LOGS" value="./logs" />
+
+    <!-- Console logging with color -->
+    <appender name="Console"
+              class="ch.qos.logback.core.ConsoleAppender">
+        <layout class="ch.qos.logback.classic.PatternLayout">
+            <Pattern>
+                %d{yyyy-MM-dd HH:mm:ss} %highlight(%-5level) [%thread] %cyan(%logger{36}): %msg%n%throwable
+            </Pattern>
+        </layout>
+    </appender>
+
+    <!-- Rolling file logging: daily, no size limit -->
+    <appender name="RollingFile"
+              class="ch.qos.logback.core.rolling.RollingFileAppender">
+
+        <!-- Current log file -->
+        <file>${LOGS}/autobidder.log</file>
+
+        <encoder
+                class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+            <Pattern>%d %p %C{1} [%t] %m%n</Pattern>
+        </encoder>
+
+        <!-- Daily rolling to archive -->
+        <rollingPolicy
+                class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+
+            <!-- Archive pattern -->
+            <fileNamePattern>${LOGS}/archived/autobidder-%d{yyyy-MM-dd}.log</fileNamePattern>
+
+        </rollingPolicy>
+    </appender>
+
+    <!-- Default logger level -->
+    <root level="info">
+        <appender-ref ref="RollingFile" />
+        <appender-ref ref="Console" />
+    </root>
+
+    <!-- Enable more detail for your own app -->
+    <logger name="com.maciu19" level="trace" additivity="false">
+        <appender-ref ref="RollingFile" />
+        <appender-ref ref="Console" />
+    </logger>
+
+</configuration>

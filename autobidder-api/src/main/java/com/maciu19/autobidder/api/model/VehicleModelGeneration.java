@@ -2,7 +2,6 @@ package com.maciu19.autobidder.api.model;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Min;
-import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -10,6 +9,8 @@ import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 
 import java.time.Instant;
+import java.util.LinkedHashSet;
+import java.util.Set;
 import java.util.UUID;
 
 @Getter
@@ -32,6 +33,9 @@ public class VehicleModelGeneration {
     @ManyToOne(optional = false)
     @JoinColumn(name = "vehicle_model_id", nullable = false)
     private VehicleModel vehicleModel;
+
+    @OneToMany(mappedBy = "vehicleModelGeneration", cascade = CascadeType.REMOVE, orphanRemoval = true)
+    private Set<VehicleEngineOption> vehicleEngineOptions = new LinkedHashSet<>();
 
     @Min(0)
     @Column(name = "start_year", nullable = false)

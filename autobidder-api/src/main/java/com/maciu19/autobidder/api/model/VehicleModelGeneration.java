@@ -27,9 +27,6 @@ public class VehicleModelGeneration {
     @Column(nullable = false)
     private UUID id;
 
-    @Column(name = "name", length = 50, nullable = false)
-    private String name;
-
     @ManyToOne(optional = false)
     @JoinColumn(name = "vehicle_model_id", nullable = false)
     private VehicleModel vehicleModel;

@@ -7,6 +7,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.Instant;
 import java.util.*;
@@ -18,6 +19,7 @@ import java.util.*;
         @UniqueConstraint(name = "uc_vehiclemodel_name", columnNames = {"NAME", "manufacturer_id"})
 })
 @NoArgsConstructor
+@EntityListeners(AuditingEntityListener.class)
 public class VehicleModel {
 
     @Id
@@ -35,7 +37,7 @@ public class VehicleModel {
     @OneToMany(mappedBy = "vehicleModel", cascade = CascadeType.REMOVE, orphanRemoval = true, fetch = FetchType.LAZY)
     private Set<VehicleModelGeneration> vehicleModelGenerations = new LinkedHashSet<>();
 
-    @ManyToOne(optional = false)
+    @ManyToOne(optional = false, fetch = FetchType.LAZY)
     @JoinColumn(name = "manufacturer_id", nullable = false)
     private Manufacturer manufacturer;
 
@@ -46,4 +48,12 @@ public class VehicleModel {
     @LastModifiedDate
     @Column(name = "last_modified_date")
     private Instant lastModifiedDate;
+
+    public VehicleModel(Manufacturer manufacturer,
+                        String name,
+                        VehicleModelSegment vehicleModelSegment) {
+        this.name = name;
+        this.manufacturer = manufacturer;
+        this.vehicleModelSegment = vehicleModelSegment;
+    }
 }

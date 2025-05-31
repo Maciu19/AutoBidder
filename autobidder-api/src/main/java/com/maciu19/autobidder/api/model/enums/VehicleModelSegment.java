@@ -2,15 +2,14 @@ package com.maciu19.autobidder.api.model.enums;
 
 public enum VehicleModelSegment implements EnumString {
 
-    MINI("mini"),
-    SMALL("small"),
-    COMPACT("compact"),
-    MID_SIZE("mid_size"),
-    EXECUTE("execute"),
-    LUXURY("luxury"),
+    CONVERTIBLE("convertible"),
+    COUPE("coupe"),
+    HATCHBACK("hatchback"),
+    VAN("van"),
+    SEDAN("sedan"),
     SUV("suv"),
-    MPV("mpv"),
-    SPORT("sport");
+    TRUCK("truck"),
+    WAGON("wagon");
 
     private final String id;
 

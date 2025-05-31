@@ -1,6 +1,10 @@
 package com.maciu19.autobidder.api.service.scraper;
 
 import com.maciu19.autobidder.api.model.Manufacturer;
+import com.maciu19.autobidder.api.model.VehicleModel;
+import com.maciu19.autobidder.api.model.enums.VehicleModelSegment;
+import com.maciu19.autobidder.api.repository.ManufacturerRepository;
+import com.maciu19.autobidder.api.utils.EnumUtils;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -12,20 +16,23 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 @Service
 public class VehicleScraperServiceImpl implements VehicleScraperService {
 
     private static final Logger log = LoggerFactory.getLogger(VehicleScraperServiceImpl.class);
-    private static final String AUTOEVOLUTION_CARS_URL = "https://www.autoevolution.com/cars/";
+    private static final String AUTOEVOLUTION_CARS_URL = "https://www.autoevolution.com";
+
+    private final ManufacturerRepository manufacturerRepository;
+
+    public VehicleScraperServiceImpl(ManufacturerRepository manufacturerRepository) {
+        this.manufacturerRepository = manufacturerRepository;
+    }
 
     @Override
     public List<Manufacturer> getAllManufacturers() {
-        Optional<String> responseBodyOptional = fetchResponseBody();
+        Optional<String> responseBodyOptional = fetchResponseBody(AUTOEVOLUTION_CARS_URL + "/cars/");
 
         if (responseBodyOptional.isEmpty()) {
             return Collections.emptyList();
@@ -43,8 +50,37 @@ public class VehicleScraperServiceImpl implements VehicleScraperService {
         return manufacturers;
     }
 
-    private Optional<String> fetchResponseBody() {
-        return fetchResponseBody(AUTOEVOLUTION_CARS_URL);
+    @Override
+    public List<VehicleModel> getAllVehicleModelsForManufacturer(UUID manufacturerId) {
+        Manufacturer manufacturer = manufacturerRepository.getReferenceById(manufacturerId);
+
+        Optional<String> responseBodyOptional = fetchResponseBody(AUTOEVOLUTION_CARS_URL + "/" + manufacturer.getName().toLowerCase() + "/");
+
+        if (responseBodyOptional.isEmpty()) {
+            return Collections.emptyList();
+        }
+
+        Document doc = Jsoup.parse(responseBodyOptional.get());
+        Elements carInfoDivElements = doc.select("div.padcol2");
+
+        List<VehicleModel> vehicleModels = new ArrayList<>();
+        for (Element e : carInfoDivElements) {
+            Element modelWithManufacturerName = e.selectFirst("a > h4");
+            Element modelBodyType = e.selectFirst("p.body");
+
+            if (modelWithManufacturerName == null || modelWithManufacturerName.text().isEmpty() ||
+                    modelBodyType == null || modelBodyType.text().isEmpty()) {
+                continue;
+            }
+
+            String modelName = modelWithManufacturerName.text().substring(
+                    modelWithManufacturerName.text().indexOf(" ") + 1);
+            String modelBodyTypeSingular = modelBodyType.text().substring(0, modelBodyType.text().length() - 1);
+            VehicleModelSegment modelBody = EnumUtils.fromId(VehicleModelSegment.class, modelBodyTypeSingular.toLowerCase());
+            vehicleModels.add(new VehicleModel(manufacturer, modelName, modelBody));
+        }
+
+        return vehicleModels;
     }
 
     private Optional<String> fetchResponseBody(String targetUri) {

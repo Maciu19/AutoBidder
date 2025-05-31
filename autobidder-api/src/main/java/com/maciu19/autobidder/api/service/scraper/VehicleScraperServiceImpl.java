@@ -5,6 +5,7 @@ import com.maciu19.autobidder.api.model.VehicleModel;
 import com.maciu19.autobidder.api.model.enums.VehicleModelSegment;
 import com.maciu19.autobidder.api.repository.ManufacturerRepository;
 import com.maciu19.autobidder.api.utils.EnumUtils;
+
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -43,7 +44,7 @@ public class VehicleScraperServiceImpl implements VehicleScraperService {
 
         List<Manufacturer> manufacturers = new ArrayList<>();
         for (Element span : carSpans) {
-            String carName = span.text();
+            String carName = preprocessString(span.text());
             manufacturers.add(new Manufacturer(carName));
         }
 
@@ -73,14 +74,21 @@ public class VehicleScraperServiceImpl implements VehicleScraperService {
                 continue;
             }
 
-            String modelName = modelWithManufacturerName.text().substring(
-                    modelWithManufacturerName.text().indexOf(" ") + 1);
+            String modelName = preprocessString(
+                    modelWithManufacturerName.text().substring(
+                    modelWithManufacturerName.text().indexOf(" ") + 1));
             String modelBodyTypeSingular = modelBodyType.text().substring(0, modelBodyType.text().length() - 1);
-            VehicleModelSegment modelBody = EnumUtils.fromId(VehicleModelSegment.class, modelBodyTypeSingular.toLowerCase());
+            VehicleModelSegment modelBody = EnumUtils.fromId(VehicleModelSegment.class, preprocessString(modelBodyTypeSingular));
+
             vehicleModels.add(new VehicleModel(manufacturer, modelName, modelBody));
         }
 
         return vehicleModels;
+    }
+
+    private String preprocessString(String input) {
+        input = input.toLowerCase();
+        return String.join("-", input.split(" "));
     }
 
     private Optional<String> fetchResponseBody(String targetUri) {

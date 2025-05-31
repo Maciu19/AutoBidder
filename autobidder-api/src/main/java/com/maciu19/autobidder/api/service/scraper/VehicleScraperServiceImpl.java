@@ -5,20 +5,12 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
+import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.firefox.FirefoxDriver;
+import org.openqa.selenium.firefox.FirefoxOptions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
-
-import java.io.IOException;
-
-import java.net.HttpURLConnection;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
-
-import java.time.Duration;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -30,7 +22,6 @@ public class VehicleScraperServiceImpl implements VehicleScraperService {
 
     private static final Logger log = LoggerFactory.getLogger(VehicleScraperServiceImpl.class);
     private static final String AUTOEVOLUTION_CARS_URL = "https://www.autoevolution.com/cars/";
-    private static final HttpClient client = HttpClient.newHttpClient();
 
     @Override
     public List<Manufacturer> getAllManufacturers() {
@@ -57,37 +48,31 @@ public class VehicleScraperServiceImpl implements VehicleScraperService {
     }
 
     private Optional<String> fetchResponseBody(String targetUri) {
+        FirefoxOptions options = new FirefoxOptions();
+        options.addArguments("-headless");
+
+        WebDriver driver = new FirefoxDriver(options);
+
         try {
-            HttpRequest request = HttpRequest.newBuilder()
-                    .uri(new URI(targetUri))
-                    .GET()
-                    .timeout(Duration.ofSeconds(10))
-                    .header("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
-                            + "(KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36")
-                    .header("Accept", "text/html,application/xhtml+xml")
-                    .header("Accept-Language", "en-US,en;q=0.9")
-                    .header("Referer", "https://www.google.com/")
-                    .header("Cookie", "aelastts=1748193018")
-                    .build();
+            driver.get(targetUri);
+            Thread.sleep(1000);
 
-            HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
-            int statusCode = response.statusCode();
-
-            if (statusCode == HttpURLConnection.HTTP_OK) {
-                return Optional.of(response.body());
-            } else {
-                log.warn("Request to {} failed with status code: {}", targetUri, statusCode);
+            String pageSource = driver.getPageSource();
+            if (pageSource == null || pageSource.isEmpty()) {
                 return Optional.empty();
+            } else {
+                return Optional.of(pageSource);
             }
-        } catch(IOException e) {
-            log.error("I/O error during request to {}: {}", targetUri, e.getMessage(), e);
+
+        } catch (InterruptedException e) {
+            log.error("Scraping interrupted for URI: {}", targetUri, e);
+            Thread.currentThread().interrupt();
             return Optional.empty();
-        } catch(InterruptedException e) {
-            log.error("Request to {} was interrupted: {}", targetUri, e.getMessage(), e);
+        } catch (Exception e) {
+            log.error("Unexpected error while fetching: {}", targetUri, e);
             return Optional.empty();
-        } catch (URISyntaxException e) {
-            log.error("Invalid URI {}: {}", targetUri, e.getMessage(), e);
-            return Optional.empty();
+        } finally {
+            driver.quit();
         }
     }
 }

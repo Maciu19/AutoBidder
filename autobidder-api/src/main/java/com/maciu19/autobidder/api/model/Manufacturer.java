@@ -6,6 +6,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.Instant;
 import java.util.*;
@@ -15,6 +16,7 @@ import java.util.*;
 @Entity
 @Table(name = "vehicle_manufacturers")
 @NoArgsConstructor
+@EntityListeners(AuditingEntityListener.class)
 public class Manufacturer {
 
     @Id
@@ -25,7 +27,7 @@ public class Manufacturer {
     @Column(name = "name", nullable = false, unique = true)
     private String name;
 
-    @OneToMany(mappedBy = "manufacturer", cascade = CascadeType.REMOVE, orphanRemoval = true)
+    @OneToMany(mappedBy = "manufacturer", cascade = CascadeType.REMOVE, orphanRemoval = true, fetch = FetchType.LAZY)
     private Set<VehicleModel> vehicleModels = new LinkedHashSet<>();
 
     @CreatedDate

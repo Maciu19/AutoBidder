@@ -4,6 +4,7 @@ import com.maciu19.autobidder.api.model.Manufacturer;
 import com.maciu19.autobidder.api.repository.ManufacturerRepository;
 import com.maciu19.autobidder.api.service.scraper.VehicleScraperService;
 
+import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 
 import java.util.Collections;
@@ -23,6 +24,7 @@ public class ManufacturerServiceImpl implements ManufacturerService {
     }
 
     @Override
+    @Transactional
     public List<Manufacturer> getAllOrCreateManufacturers() {
         List<Manufacturer> manufacturers = manufacturerRepository.findAll();
 

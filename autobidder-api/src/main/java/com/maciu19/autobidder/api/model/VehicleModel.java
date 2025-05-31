@@ -29,10 +29,10 @@ public class VehicleModel {
     private String name;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "vehicle_model_segment", length = 20)
+    @Column(name = "segment", length = 20)
     private VehicleModelSegment vehicleModelSegment;
 
-    @OneToMany(mappedBy = "vehicleModel", cascade = CascadeType.REMOVE, orphanRemoval = true)
+    @OneToMany(mappedBy = "vehicleModel", cascade = CascadeType.REMOVE, orphanRemoval = true, fetch = FetchType.LAZY)
     private Set<VehicleModelGeneration> vehicleModelGenerations = new LinkedHashSet<>();
 
     @ManyToOne(optional = false)

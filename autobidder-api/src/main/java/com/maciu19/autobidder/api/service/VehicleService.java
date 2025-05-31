@@ -6,7 +6,7 @@ import com.maciu19.autobidder.api.model.VehicleModel;
 import java.util.List;
 import java.util.UUID;
 
-public interface ManufacturerService {
+public interface VehicleService {
 
     List<Manufacturer> getAllOrCreateManufacturers();
 

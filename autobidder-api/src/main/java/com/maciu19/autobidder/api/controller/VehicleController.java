@@ -2,7 +2,7 @@ package com.maciu19.autobidder.api.controller;
 
 import com.maciu19.autobidder.api.controller.dtos.ManufacturerDto;
 import com.maciu19.autobidder.api.controller.dtos.VehicleModelDto;
-import com.maciu19.autobidder.api.service.ManufacturerService;
+import com.maciu19.autobidder.api.service.VehicleService;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -14,24 +14,24 @@ import java.util.List;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/manufacturer")
-public class ManufacturerController {
+@RequestMapping("/vehicles")
+public class VehicleController {
 
     @Autowired
-    private final ManufacturerService service;
+    private final VehicleService service;
 
-    public ManufacturerController(ManufacturerService service) {
+    public VehicleController(VehicleService service) {
         this.service = service;
     }
 
-    @GetMapping
+    @GetMapping(value = "/manufacturers")
     public List<ManufacturerDto> findAll() {
         return service.getAllOrCreateManufacturers()
                 .stream().map(ManufacturerDto::mapToDto)
                 .toList();
     }
 
-    @GetMapping(value = "/{id}/models")
+    @GetMapping(value = "/manufacturers/{id}/models")
     public List<VehicleModelDto> findAllModelsForManufacturer(@PathVariable("id") UUID id) {
         return service.getAllOrCreateVehicleModelForManufacturer(id)
                 .stream().map(VehicleModelDto::mapToDto)

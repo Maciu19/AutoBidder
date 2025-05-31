@@ -14,13 +14,13 @@ import java.util.List;
 import java.util.UUID;
 
 @Service
-public class ManufacturerServiceImpl implements ManufacturerService {
+public class VehicleServiceImpl implements VehicleService {
 
     private final ManufacturerRepository manufacturerRepository;
     private final VehicleModelRepository modelRepository;
     private final VehicleScraperService scraperService;
 
-    public ManufacturerServiceImpl(
+    public VehicleServiceImpl(
             ManufacturerRepository manufacturerRepository,
             VehicleModelRepository modelRepository,
             VehicleScraperService scraperService) {

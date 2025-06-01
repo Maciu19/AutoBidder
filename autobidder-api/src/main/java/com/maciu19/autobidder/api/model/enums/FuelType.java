@@ -2,15 +2,10 @@ package com.maciu19.autobidder.api.model.enums;
 
 public enum FuelType implements EnumString{
 
-    PETROL("petrol"),
+    GASOLINE("gasoline"),
     DIESEL("diesel"),
-    ELECTRIC("electric"),
     HYBRID("hybrid"),
-    PLUG_IN_HYBRID("plug_in_hybrid"),
-    LPG("lpg"),
-    CNG("cng"),
-    HYDROGEN("hydrogen"),
-    OTHER("other");
+    ELECTRIC("electric");
 
     private final String id;
 

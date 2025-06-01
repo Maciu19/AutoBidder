@@ -2,10 +2,9 @@ package com.maciu19.autobidder.api.model.enums;
 
 public enum Drivetrain implements EnumString {
 
-    FWD("fwd"),
-    RWD("rwd"),
-    AWD("awd"),
-    FOOUR_WD("4wd");
+    FRONT_WHEEL_DRIVE("front-wheel-drive"),
+    REAR_WHEEL_DRIVE("read-wheel-drive"),
+    ALL_WHEEL_DRIVE("all-wheel-drive");
 
     private final String id;
 

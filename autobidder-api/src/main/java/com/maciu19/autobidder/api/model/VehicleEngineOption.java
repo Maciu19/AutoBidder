@@ -2,11 +2,9 @@ package com.maciu19.autobidder.api.model;
 
 import com.maciu19.autobidder.api.model.enums.Drivetrain;
 import com.maciu19.autobidder.api.model.enums.FuelType;
-import com.maciu19.autobidder.api.model.enums.TransmissionType;
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.util.UUID;
 
@@ -17,6 +15,9 @@ import java.util.UUID;
 })
 @Entity
 @NoArgsConstructor
+@AllArgsConstructor
+@Builder
+@EntityListeners(AuditingEntityListener.class)
 public class VehicleEngineOption {
 
     @Id
@@ -27,23 +28,13 @@ public class VehicleEngineOption {
     @Column(name = "name", length = 100)
     private String name;
 
-    @Column(name = "cylinders")
-    private Integer cylinders;
-
     @ManyToOne(optional = false, fetch = FetchType.LAZY)
     @JoinColumn(name = "vehicle_model_generation_id", nullable = false)
     private VehicleModelGeneration vehicleModelGeneration;
 
-    @Column(name = "displacement")
-    private Integer displacement;
-
     @Enumerated(EnumType.STRING)
     @Column(name = "fuel_type")
     private FuelType fuelType;
-
-    @Enumerated(EnumType.STRING)
-    @Column(name = "transmission_type")
-    private TransmissionType transmissionType;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "drivetrain")
@@ -54,4 +45,13 @@ public class VehicleEngineOption {
 
     @Column(name = "torque_nm")
     private Integer torqueNm;
+
+    @Column(name = "displacement")
+    private Integer displacement;
+
+    @Column(name = "cylinders")
+    private String cylinders;
+
+    @Column(name = "transmission_type")
+    private String transmissionType;
 }

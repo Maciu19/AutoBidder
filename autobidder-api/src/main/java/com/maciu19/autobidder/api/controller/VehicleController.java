@@ -2,6 +2,7 @@ package com.maciu19.autobidder.api.controller;
 
 import com.maciu19.autobidder.api.controller.dtos.ManufacturerDto;
 import com.maciu19.autobidder.api.controller.dtos.VehicleModelDto;
+import com.maciu19.autobidder.api.controller.dtos.VehicleModelGenerationDto;
 import com.maciu19.autobidder.api.service.VehicleService;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,6 +36,13 @@ public class VehicleController {
     public List<VehicleModelDto> findAllModelsForManufacturer(@PathVariable("id") UUID id) {
         return service.getAllOrCreateVehicleModelForManufacturer(id)
                 .stream().map(VehicleModelDto::mapToDto)
+                .toList();
+    }
+
+    @GetMapping(value = "/models/{id}/generations")
+    public List<VehicleModelGenerationDto> findAllModelGenerationsForModel(@PathVariable("id") UUID id) {
+        return service.getAllOrCreateModelGenerationForVehicleModel(id)
+                .stream().map(VehicleModelGenerationDto::mapToDto)
                 .toList();
     }
 }

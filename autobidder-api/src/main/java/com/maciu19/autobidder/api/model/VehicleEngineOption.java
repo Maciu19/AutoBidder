@@ -30,7 +30,7 @@ public class VehicleEngineOption {
     @Column(name = "cylinders")
     private Integer cylinders;
 
-    @ManyToOne(optional = false)
+    @ManyToOne(optional = false, fetch = FetchType.LAZY)
     @JoinColumn(name = "vehicle_model_generation_id", nullable = false)
     private VehicleModelGeneration vehicleModelGeneration;
 

@@ -2,8 +2,10 @@ package com.maciu19.autobidder.api.service.scraper;
 
 import com.maciu19.autobidder.api.model.Manufacturer;
 import com.maciu19.autobidder.api.model.VehicleModel;
+import com.maciu19.autobidder.api.model.VehicleModelGeneration;
 import com.maciu19.autobidder.api.model.enums.VehicleModelSegment;
 import com.maciu19.autobidder.api.repository.ManufacturerRepository;
+import com.maciu19.autobidder.api.repository.VehicleModelRepository;
 import com.maciu19.autobidder.api.utils.EnumUtils;
 
 import org.jsoup.Jsoup;
@@ -26,9 +28,12 @@ public class VehicleScraperServiceImpl implements VehicleScraperService {
     private static final String AUTOEVOLUTION_CARS_URL = "https://www.autoevolution.com";
 
     private final ManufacturerRepository manufacturerRepository;
+    private final VehicleModelRepository vehicleModelRepository;
 
-    public VehicleScraperServiceImpl(ManufacturerRepository manufacturerRepository) {
+    public VehicleScraperServiceImpl(ManufacturerRepository manufacturerRepository,
+                                     VehicleModelRepository vehicleModelRepository) {
         this.manufacturerRepository = manufacturerRepository;
+        this.vehicleModelRepository = vehicleModelRepository;
     }
 
     @Override
@@ -84,6 +89,45 @@ public class VehicleScraperServiceImpl implements VehicleScraperService {
         }
 
         return vehicleModels;
+    }
+
+    @Override
+    public List<VehicleModelGeneration> getAllModelGenerationForVehicleModel(UUID vehicleModelId) {
+        VehicleModel vehicleModel = vehicleModelRepository.getReferenceById(vehicleModelId);
+
+        Optional<String> responseBodyOptional = fetchResponseBody(AUTOEVOLUTION_CARS_URL + "/" +
+                vehicleModel.getManufacturer().getName() + "/" +
+                vehicleModel.getName() + "/");
+
+        if (responseBodyOptional.isEmpty()) {
+            return Collections.emptyList();
+        }
+
+        Document doc = Jsoup.parse(responseBodyOptional.get());
+        Elements carElements = doc.select("div.years.padcol2 h2 a");
+
+        List<VehicleModelGeneration> vehicleModelGenerations = new ArrayList<>();
+        for (Element a : carElements) {
+            String text = a.ownText();
+            String yearsPart = text.replaceAll("[()]", "").trim();
+            String[] years = yearsPart.split(" - ");
+
+            if (years.length == 2) {
+                int startYear = Integer.parseInt(years[0]);
+
+                Integer endYear;
+                try {
+                    endYear = Integer.parseInt(years[1]);
+                } catch (NumberFormatException e) {
+                    endYear = null;
+                }
+
+                vehicleModelGenerations.add(
+                        new VehicleModelGeneration(vehicleModel, startYear, endYear));
+            }
+        }
+
+        return vehicleModelGenerations;
     }
 
     private String preprocessString(String input) {

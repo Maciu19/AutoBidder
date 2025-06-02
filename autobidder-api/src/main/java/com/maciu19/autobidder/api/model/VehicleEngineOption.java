@@ -4,7 +4,6 @@ import com.maciu19.autobidder.api.model.enums.Drivetrain;
 import com.maciu19.autobidder.api.model.enums.FuelType;
 import jakarta.persistence.*;
 import lombok.*;
-import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.util.UUID;
 
@@ -17,13 +16,16 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-@EntityListeners(AuditingEntityListener.class)
 public class VehicleEngineOption {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     @Column(nullable = false)
     private UUID id;
+
+    @Lob
+    @Column(name = "link")
+    private String link;
 
     @Column(name = "name", length = 100)
     private String name;

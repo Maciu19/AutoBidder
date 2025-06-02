@@ -1,6 +1,7 @@
 package com.maciu19.autobidder.api.service.scraper;
 
 import com.maciu19.autobidder.api.model.Manufacturer;
+import com.maciu19.autobidder.api.model.VehicleEngineOption;
 import com.maciu19.autobidder.api.model.VehicleModel;
 import com.maciu19.autobidder.api.model.VehicleModelGeneration;
 import com.maciu19.autobidder.api.model.enums.VehicleModelSegment;
@@ -104,14 +105,18 @@ public class VehicleScraperServiceImpl implements VehicleScraperService {
         }
 
         Document doc = Jsoup.parse(responseBodyOptional.get());
-        Elements carElements = doc.select("div.years.padcol2 h2 a");
+        Elements carInfoBlocks = doc.select("div.col23width.fl.bcol-white");
 
         List<VehicleModelGeneration> vehicleModelGenerations = new ArrayList<>();
-        for (Element a : carElements) {
-            String text = a.ownText();
-            String yearsPart = text.replaceAll("[()]", "").trim();
-            String[] years = yearsPart.split(" - ");
+        for (Element carInfoBlock : carInfoBlocks) {
+            Element yearsElement = carInfoBlock.select("div.years.padcol2 h2 a").first();
 
+            if (yearsElement == null) {
+                continue;
+            }
+
+            String yearsPart = yearsElement.ownText().replaceAll("[()]", "").trim();
+            String[] years = yearsPart.split(" - ");
             if (years.length == 2) {
                 int startYear = Integer.parseInt(years[0]);
 
@@ -124,6 +129,13 @@ public class VehicleScraperServiceImpl implements VehicleScraperService {
 
                 vehicleModelGenerations.add(
                         new VehicleModelGeneration(vehicleModel, startYear, endYear));
+            }
+
+            Elements carEngines = carInfoBlock.select("p.engitm a");
+            List<VehicleEngineOption> engineOptions = new ArrayList<>();
+            for(Element carEngine : carEngines) {
+                String link = carEngine.
+                engineOptions.add(VehicleEngineOption.builder().link());
             }
         }
 

@@ -24,6 +24,9 @@ public class Manufacturer {
     @Column(nullable = false)
     private UUID id;
 
+    @Column(name = "url", unique = true)
+    private String url;
+
     @Column(name = "name", nullable = false, unique = true)
     private String name;
 
@@ -37,8 +40,4 @@ public class Manufacturer {
     @LastModifiedDate
     @Column(name = "last_modified_date")
     private Instant lastModifiedDate;
-
-    public Manufacturer(String name) {
-        this.name = name;
-    }
 }

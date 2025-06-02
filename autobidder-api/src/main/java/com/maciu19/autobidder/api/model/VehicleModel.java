@@ -27,6 +27,9 @@ public class VehicleModel {
     @Column(nullable = false)
     private UUID id;
 
+    @Column(name = "url", unique = true)
+    private String url;
+
     @Column(name = "NAME", length = 100, nullable = false)
     private String name;
 
@@ -48,12 +51,4 @@ public class VehicleModel {
     @LastModifiedDate
     @Column(name = "last_modified_date")
     private Instant lastModifiedDate;
-
-    public VehicleModel(Manufacturer manufacturer,
-                        String name,
-                        VehicleModelSegment vehicleModelSegment) {
-        this.name = name;
-        this.manufacturer = manufacturer;
-        this.vehicleModelSegment = vehicleModelSegment;
-    }
 }

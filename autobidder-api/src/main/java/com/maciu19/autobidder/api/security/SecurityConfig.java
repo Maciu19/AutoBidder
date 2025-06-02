@@ -1,4 +1,4 @@
-package com.maciu19.autobidder.api.config.security;
+package com.maciu19.autobidder.api.security;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

@@ -9,9 +9,9 @@ import java.util.UUID;
 
 public interface VehicleService {
 
-    List<Manufacturer> getAllOrCreateManufacturers();
+    List<Manufacturer> getAllManufacturers();
 
-    List<VehicleModel> getAllOrCreateVehicleModelForManufacturer(UUID manufacturerId);
+    List<VehicleModel> getAllVehicleModelForManufacturer(UUID manufacturerId);
 
-    List<VehicleModelGeneration> getAllOrCreateModelGenerationForVehicleModel(UUID vehicleModelId);
+    List<VehicleModelGeneration> getAllModelGenerationForVehicleModel(UUID vehicleModelId);
 }

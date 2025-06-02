@@ -27,21 +27,21 @@ public class VehicleController {
 
     @GetMapping(value = "/manufacturers")
     public List<ManufacturerDto> findAll() {
-        return service.getAllOrCreateManufacturers()
+        return service.getAllManufacturers()
                 .stream().map(ManufacturerDto::mapToDto)
                 .toList();
     }
 
     @GetMapping(value = "/manufacturers/{id}/models")
     public List<VehicleModelDto> findAllModelsForManufacturer(@PathVariable("id") UUID id) {
-        return service.getAllOrCreateVehicleModelForManufacturer(id)
+        return service.getAllVehicleModelForManufacturer(id)
                 .stream().map(VehicleModelDto::mapToDto)
                 .toList();
     }
 
     @GetMapping(value = "/models/{id}/generations")
     public List<VehicleModelGenerationDto> findAllModelGenerationsForModel(@PathVariable("id") UUID id) {
-        return service.getAllOrCreateModelGenerationForVehicleModel(id)
+        return service.getAllModelGenerationForVehicleModel(id)
                 .stream().map(VehicleModelGenerationDto::mapToDto)
                 .toList();
     }

@@ -5,9 +5,14 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 public interface VehicleModelGenerationRepository extends JpaRepository<VehicleModelGeneration, UUID> {
+
+    @Query("select v from VehicleModelGeneration v" +
+            " where v.vehicleModel.id = ?1 and v.startYear = ?2 and v.endYear = ?3")
+    Optional<VehicleModelGeneration> findByVehicleModelAndStartYearAndEndYear(UUID id, Integer startYear, Integer endYear);
 
     @Query("select v from VehicleModelGeneration v where v.vehicleModel.id = ?1")
     List<VehicleModelGeneration> getAllGenerationsForModel(UUID id);

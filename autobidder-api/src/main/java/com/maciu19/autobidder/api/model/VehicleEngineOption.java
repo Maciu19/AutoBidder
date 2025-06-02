@@ -24,10 +24,10 @@ public class VehicleEngineOption {
     private UUID id;
 
     @Lob
-    @Column(name = "link")
-    private String link;
+    @Column(name = "url", unique = true)
+    private String url;
 
-    @Column(name = "name", length = 100)
+    @Column(name = "name")
     private String name;
 
     @ManyToOne(optional = false, fetch = FetchType.LAZY)
@@ -35,11 +35,11 @@ public class VehicleEngineOption {
     private VehicleModelGeneration vehicleModelGeneration;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "fuel_type")
+    @Column(name = "fuel_type", length = 100)
     private FuelType fuelType;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "drivetrain")
+    @Column(name = "drivetrain", length = 50)
     private Drivetrain drivetrain;
 
     @Column(name = "power_hp")
@@ -50,9 +50,6 @@ public class VehicleEngineOption {
 
     @Column(name = "displacement")
     private Integer displacement;
-
-    @Column(name = "cylinders")
-    private String cylinders;
 
     @Column(name = "transmission_type")
     private String transmissionType;

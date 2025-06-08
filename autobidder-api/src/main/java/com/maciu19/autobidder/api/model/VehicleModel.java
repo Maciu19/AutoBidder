@@ -16,7 +16,7 @@ import java.util.*;
 @Setter
 @Entity
 @Table(name = "vehicle_models", uniqueConstraints = {
-        @UniqueConstraint(name = "uc_vehiclemodel_name", columnNames = {"NAME", "manufacturer_id"})
+        @UniqueConstraint(name = "uc_vehiclemodel_name", columnNames = {"name", "manufacturer_id"})
 })
 @NoArgsConstructor
 @EntityListeners(AuditingEntityListener.class)
@@ -37,7 +37,11 @@ public class VehicleModel {
     @Column(name = "segment", length = 20)
     private VehicleModelSegment vehicleModelSegment;
 
-    @OneToMany(mappedBy = "vehicleModel", cascade = CascadeType.REMOVE, orphanRemoval = true, fetch = FetchType.LAZY)
+    @OneToMany(
+            mappedBy = "vehicleModel",
+            fetch = FetchType.LAZY,
+            cascade = CascadeType.ALL,
+            orphanRemoval = true)
     private Set<VehicleModelGeneration> vehicleModelGenerations = new LinkedHashSet<>();
 
     @ManyToOne(optional = false, fetch = FetchType.LAZY)
@@ -51,4 +55,9 @@ public class VehicleModel {
     @LastModifiedDate
     @Column(name = "last_modified_date")
     private Instant lastModifiedDate;
+
+    public void addGeneration(VehicleModelGeneration generation) {
+        vehicleModelGenerations.add(generation);
+        generation.setVehicleModel(this);
+    }
 }

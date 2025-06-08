@@ -17,9 +17,7 @@ import java.util.UUID;
 @Getter
 @Setter
 @Entity
-@Table(name = "vehicle_model_generations", uniqueConstraints = {
-        @UniqueConstraint(name = "uc_vehiclemodelgeneration", columnNames = {"vehicle_model_id", "name", "start_year"})
-})
+@Table(name = "vehicle_model_generations")
 @NoArgsConstructor
 @EntityListeners(AuditingEntityListener.class)
 public class VehicleModelGeneration {
@@ -36,6 +34,9 @@ public class VehicleModelGeneration {
     @OneToMany(mappedBy = "vehicleModelGeneration", cascade = CascadeType.REMOVE, orphanRemoval = true, fetch = FetchType.LAZY)
     private Set<VehicleEngineOption> vehicleEngineOptions = new LinkedHashSet<>();
 
+    @Column(name = "name")
+    private String name;
+
     @Min(0)
     @Column(name = "start_year", nullable = false)
     private Integer startYear;
@@ -50,10 +51,4 @@ public class VehicleModelGeneration {
     @LastModifiedDate
     @Column(name = "last_modified_date")
     private Instant lastModifiedDate;
-
-    public VehicleModelGeneration(VehicleModel vehicleModel, Integer startYear, Integer endYear) {
-        this.vehicleModel = vehicleModel;
-        this.startYear = startYear;
-        this.endYear = endYear;
-    }
 }

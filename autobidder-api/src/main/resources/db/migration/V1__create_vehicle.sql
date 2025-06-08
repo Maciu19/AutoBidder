@@ -20,11 +20,11 @@ CREATE TABLE IF NOT EXISTS vehicle_models (
 CREATE TABLE IF NOT EXISTS vehicle_model_generations (
     id UUID PRIMARY KEY,
     vehicle_model_id UUID NOT NULL REFERENCES vehicle_models(id) ON DELETE CASCADE,
+    name VARCHAR(255) NOT NULL,
     start_year INT NOT NULL,
     end_year INT,
     created_date TIMESTAMP,
-    last_modified_date TIMESTAMP,
-    UNIQUE(vehicle_model_id, start_year, end_year)
+    last_modified_date TIMESTAMP
 );
 
 CREATE TABLE IF NOT EXISTS vehicle_engine_options (

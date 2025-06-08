@@ -30,7 +30,11 @@ public class Manufacturer {
     @Column(name = "name", nullable = false, unique = true)
     private String name;
 
-    @OneToMany(mappedBy = "manufacturer", cascade = CascadeType.REMOVE, orphanRemoval = true, fetch = FetchType.LAZY)
+    @OneToMany(
+            mappedBy = "manufacturer",
+            fetch = FetchType.LAZY,
+            cascade = CascadeType.ALL,
+            orphanRemoval = true)
     private Set<VehicleModel> vehicleModels = new LinkedHashSet<>();
 
     @CreatedDate
@@ -40,4 +44,14 @@ public class Manufacturer {
     @LastModifiedDate
     @Column(name = "last_modified_date")
     private Instant lastModifiedDate;
+
+    public void addVehicleModel(VehicleModel model) {
+        vehicleModels.add(model);
+        model.setManufacturer(this);
+    }
+
+    public void removeVehicleModel(VehicleModel model) {
+        vehicleModels.remove(model);
+        model.setManufacturer(null);
+    }
 }

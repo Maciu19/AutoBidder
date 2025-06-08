@@ -6,7 +6,7 @@ spring:
     banner-mode: off
 
   jpa:
-    show-sql: true
+#    show-sql: true
     hibernate:
       ddl-auto: none
 
@@ -40,3 +40,7 @@ scraper:
 
   web-driver:
     timeout-seconds: 20
+
+  manufacturers:
+    exclude: AC, ACURA, ALPINE, ARIEL, ARTEGA, AURUS, BRISTOL, BUFORI, CATERHAM, DeLorean, DONKERVOORT, DR MOTOR, EAGLE, FISKER, FSO, GEELY, GORDON MURRAY Automotive, GTA Motor logo, GTA Motor, HINDUSTAN, HOLDEN, INEOS, Karma, KTM, LIGHTYEAR, Lucid Motors, Mahindra, MARUSSIA, MARUTI SUZUKI, MORGAN, NIO, PANOZ, PERODUA, PLYMOUTH, Polestar, PROTON, QOROS, RIMAC, RIVIAN, SALEEN, SANTANA, SAMSUNG, SCION, SPYKER, TVR, VinFast, WIESMANN, Xpeng, ZENDER, Zenvo
+    min-model-year: 1960

@@ -13,7 +13,7 @@ public record VehicleModelDto(
         Instant createdDate,
         Instant lastModifiedDate
 ) {
-    public static VehicleModelDto mapToDto(VehicleModel vehicleModel) {
+    public static VehicleModelDto toDto(VehicleModel vehicleModel) {
         return new VehicleModelDto(
                 vehicleModel.getId(),
                 vehicleModel.getName(),

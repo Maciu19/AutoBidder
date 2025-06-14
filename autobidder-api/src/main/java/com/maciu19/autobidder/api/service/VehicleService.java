@@ -1,6 +1,7 @@
 package com.maciu19.autobidder.api.service;
 
 import com.maciu19.autobidder.api.model.Manufacturer;
+import com.maciu19.autobidder.api.model.VehicleEngineOption;
 import com.maciu19.autobidder.api.model.VehicleModel;
 import com.maciu19.autobidder.api.model.VehicleModelGeneration;
 
@@ -14,4 +15,6 @@ public interface VehicleService {
     List<VehicleModel> getAllVehicleModelForManufacturer(UUID manufacturerId);
 
     List<VehicleModelGeneration> getAllModelGenerationForVehicleModel(UUID vehicleModelId);
+
+    List<VehicleEngineOption> getAllEngineOptionsForModelGeneration(UUID vehicleModelGenerationId);
 }

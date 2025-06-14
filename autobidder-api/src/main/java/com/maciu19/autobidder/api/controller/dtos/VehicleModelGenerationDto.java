@@ -12,7 +12,7 @@ public record VehicleModelGenerationDto(
         Instant createdDate,
         Instant lastModifiedDate
 ) {
-    public static VehicleModelGenerationDto mapToDto(VehicleModelGeneration vehicleModelGeneration) {
+    public static VehicleModelGenerationDto toDto(VehicleModelGeneration vehicleModelGeneration) {
         return new VehicleModelGenerationDto(
                 vehicleModelGeneration.getId(),
                 vehicleModelGeneration.getStartYear(),

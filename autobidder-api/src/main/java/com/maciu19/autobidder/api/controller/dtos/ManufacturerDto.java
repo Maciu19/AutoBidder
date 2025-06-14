@@ -11,7 +11,7 @@ public record ManufacturerDto(
         Instant createdDate,
         Instant lastModifiedDate
 ) {
-    public static ManufacturerDto mapToDto(Manufacturer manufacturer) {
+    public static ManufacturerDto toDto(Manufacturer manufacturer) {
         return new ManufacturerDto(
                 manufacturer.getId(),
                 manufacturer.getName(),

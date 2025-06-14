@@ -2,21 +2,25 @@ package com.maciu19.autobidder.api.service.scraper;
 
 import com.maciu19.autobidder.api.config.AsyncConfig;
 import com.maciu19.autobidder.api.model.Manufacturer;
+import com.maciu19.autobidder.api.model.VehicleEngineOption;
 import com.maciu19.autobidder.api.model.VehicleModel;
 import com.maciu19.autobidder.api.model.VehicleModelGeneration;
+import com.maciu19.autobidder.api.model.enums.FuelType;
 import com.maciu19.autobidder.api.model.enums.VehicleModelSegment;
 import com.maciu19.autobidder.api.repository.ManufacturerRepository;
-import com.maciu19.autobidder.api.repository.VehicleEngineOptionRepository;
-import com.maciu19.autobidder.api.repository.VehicleModelGenerationRepository;
 import com.maciu19.autobidder.api.repository.VehicleModelRepository;
 import com.maciu19.autobidder.api.utils.EnumUtils;
+
 import jakarta.transaction.Transactional;
+
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
@@ -34,17 +38,11 @@ public class AsyncVehicleProcessorImpl implements AsyncVehicleProcessor {
 
     private final ManufacturerRepository manufacturerRepository;
     private final VehicleModelRepository vehicleModelRepository;
-    private final VehicleModelGenerationRepository modelGenerationRepository;
-    private final VehicleEngineOptionRepository vehicleEngineOptionRepository;
 
     public AsyncVehicleProcessorImpl(ManufacturerRepository manufacturerRepository,
-                                     VehicleModelRepository vehicleModelRepository,
-                                     VehicleModelGenerationRepository modelGenerationRepository,
-                                     VehicleEngineOptionRepository vehicleEngineOptionRepository) {
+                                     VehicleModelRepository vehicleModelRepository) {
         this.manufacturerRepository = manufacturerRepository;
         this.vehicleModelRepository = vehicleModelRepository;
-        this.modelGenerationRepository = modelGenerationRepository;
-        this.vehicleEngineOptionRepository = vehicleEngineOptionRepository;
     }
 
     /**
@@ -87,7 +85,7 @@ public class AsyncVehicleProcessorImpl implements AsyncVehicleProcessor {
 
     private void scrapeAndSaveVehicleModelsForManufacturer(Manufacturer manufacturer) {
         String manufacturerPageUrl = manufacturer.getUrl();
-        Optional<String> responseBodyOptional = ScraperUtils.fetchResponseBody(manufacturerPageUrl, "div.padcol2");
+        Optional<String> responseBodyOptional = ScraperUtils.fetchResponseBody(manufacturerPageUrl, "div.col2width.bcol-white.fl div.padcol2");
 
         if (responseBodyOptional.isEmpty()) {
             log.warn("Failed to fetch response body for manufacturer models page: {}", manufacturerPageUrl);
@@ -95,7 +93,7 @@ public class AsyncVehicleProcessorImpl implements AsyncVehicleProcessor {
         }
 
         Document doc = Jsoup.parse(responseBodyOptional.get());
-        Elements carInfoDivElements = doc.select("div.padcol2");
+        Elements carInfoDivElements = doc.select("div.col2width.bcol-white.fl div.padcol2");
 
         for (Element carInfo : carInfoDivElements) {
             Element modelLink = carInfo.selectFirst("a");
@@ -168,10 +166,91 @@ public class AsyncVehicleProcessorImpl implements AsyncVehicleProcessor {
             newGeneration.setStartYear(startYear);
             newGeneration.setEndYear(endYear);
 
-            vehicleModel.addGeneration(newGeneration);
+            scrapeAndBuildEnginesFor(newGeneration, carInfoBlock);
 
-            // TODO: We still need to include Vehicle Engines
+            vehicleModel.addGeneration(newGeneration);
         }
+    }
+
+    /**
+     * @param newGeneration The generation object to add engines to.
+     * @param carInfoBlock The HTML block for the generation, which contains the "full specs" link.
+     */
+    private void scrapeAndBuildEnginesFor(VehicleModelGeneration newGeneration, Element carInfoBlock) {
+        Elements fuelTypeSections = carInfoBlock.select("div.mot.padcol2.clearfix");
+        if (fuelTypeSections.isEmpty()) {
+            log.warn("Could not find any engine fuel sections for generation: {}", newGeneration.getName());
+            return;
+        }
+
+        for (Element fuelSection : fuelTypeSections) {
+            Element fuelTypeElement = fuelSection.selectFirst("strong.upcase.dispblock.mgbot_10");
+            if (fuelTypeElement == null) {
+                log.debug("Skipping a fuel section with no title for generation '{}'.", newGeneration.getName());
+                continue;
+            }
+
+            String rawFuelText = fuelTypeElement.text();
+            FuelType fuelType = getFuelType(rawFuelText);
+            if (fuelType == FuelType.UNKNOWN) {
+                log.warn("Could not map fuel type '{}' to an enum for generation '{}'.", rawFuelText, newGeneration.getName());
+            }
+
+            Elements engineLinks = fuelSection.select("p.engitm a");
+            for (Element engineLink : engineLinks) {
+                Element engineNameElement = engineLink.selectFirst("span.col-green2");
+                String engineUrl = engineLink.attr("href");
+
+                if (engineNameElement == null || !engineNameElement.hasText() || engineUrl.isEmpty()) {
+                    log.debug("Skipping an engine link with missing name or URL for generation '{}'.", newGeneration.getName());
+                    continue;
+                }
+
+                VehicleEngineOption newEngine = new VehicleEngineOption();
+                newEngine.setName(engineNameElement.text());
+                newEngine.setUrl(engineUrl);
+                newEngine.setFuelType(fuelType);
+
+                newGeneration.addEngine(newEngine);
+            }
+        }
+    }
+
+    private FuelType getFuelType(String rawFuelText) {
+        return parseFuelType(rawFuelText);
+    }
+
+    /**
+     * Parses a raw string from the website (e.g., "GASOLINE ENGINES") into a FuelType enum.
+     * @param rawText The text scraped from the page.
+     * @return The matching FuelType enum, or null if no match is found.
+     */
+    private FuelType parseFuelType(String rawText) {
+        if (rawText == null || rawText.isEmpty()) {
+            return null;
+        }
+
+        String cleanedText = rawText.toLowerCase();
+
+        if (cleanedText.contains("hybrid")) {
+            if (cleanedText.contains("mild")) {
+                return FuelType.MILD_HYBRID;
+            }
+            else if (cleanedText.contains("plug")) {
+                return FuelType.PLUG_IN_HYBRID;
+            }
+            else {
+                return FuelType.HYBRID;
+            }
+        }
+        if (cleanedText.contains("gasoline") || cleanedText.contains("%s")) return FuelType.GASOLINE;
+        if (cleanedText.contains("diesel")) return FuelType.DIESEL;
+        if (cleanedText.contains("electric")) return FuelType.ELECTRIC;
+        if ((cleanedText.contains("natural") && cleanedText.contains("gas")) || cleanedText.contains("cng")) return FuelType.NATURAL_GAS;
+        if (cleanedText.contains("lpg")) return FuelType.LPG;
+        if (cleanedText.contains("ethanol")) return FuelType.ETHANOL;
+
+        return FuelType.UNKNOWN;
     }
 
     /**

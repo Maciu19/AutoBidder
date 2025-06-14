@@ -4,8 +4,15 @@ public enum FuelType implements EnumString{
 
     GASOLINE("gasoline"),
     DIESEL("diesel"),
+    ELECTRIC("electric"),
     HYBRID("hybrid"),
-    ELECTRIC("electric");
+    MILD_HYBRID("mild-hybrid"),
+    PLUG_IN_HYBRID("plug-in-hybrid"),
+    NATURAL_GAS("natural-gas"),
+    LPG("lpg"),
+    ETHANOL("ethanol"),
+    UNKNOWN("unknown");
+
 
     private final String id;
 

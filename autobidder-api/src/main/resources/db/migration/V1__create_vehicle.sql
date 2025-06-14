@@ -31,14 +31,8 @@ CREATE TABLE IF NOT EXISTS vehicle_engine_options (
     id UUID PRIMARY KEY,
     url VARCHAR(2048) NOT NULL UNIQUE,
     name VARCHAR(255) NOT NULL,
-    model_generation_id UUID NOT NULL REFERENCES vehicle_model_generations(id) ON DELETE CASCADE,
+    vehicle_model_generation_id UUID NOT NULL REFERENCES vehicle_model_generations(id) ON DELETE CASCADE,
     fuel_type VARCHAR(100),
-    drivetrain VARCHAR(50),
-    power_hp INT,
-    torque_nm INT,
-    displacement INT,
-    transmission_type VARCHAR(100),
     created_date TIMESTAMP,
-    last_modified_date TIMESTAMP,
-    UNIQUE(model_generation_id, name)
+    last_modified_date TIMESTAMP
 );

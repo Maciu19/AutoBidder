@@ -31,7 +31,11 @@ public class VehicleModelGeneration {
     @JoinColumn(name = "vehicle_model_id", nullable = false)
     private VehicleModel vehicleModel;
 
-    @OneToMany(mappedBy = "vehicleModelGeneration", cascade = CascadeType.REMOVE, orphanRemoval = true, fetch = FetchType.LAZY)
+    @OneToMany(
+            mappedBy = "vehicleModelGeneration",
+            fetch = FetchType.LAZY,
+            cascade = CascadeType.ALL,
+            orphanRemoval = true)
     private Set<VehicleEngineOption> vehicleEngineOptions = new LinkedHashSet<>();
 
     @Column(name = "name")
@@ -51,4 +55,9 @@ public class VehicleModelGeneration {
     @LastModifiedDate
     @Column(name = "last_modified_date")
     private Instant lastModifiedDate;
+
+    public void addEngine(VehicleEngineOption engine) {
+        vehicleEngineOptions.add(engine);
+        engine.setVehicleModelGeneration(this);
+    }
 }

@@ -7,6 +7,7 @@ import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.Instant;
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Getter
@@ -37,6 +38,9 @@ public class User {
 
     @Column(name = "last_name")
     private String lastName;
+
+    @Column(name = "last_synced_at")
+    private LocalDateTime lastSyncedAt;
 
     @CreatedDate
     @Column(name = "created_date")

@@ -5,5 +5,5 @@ import org.springframework.security.oauth2.jwt.Jwt;
 
 public interface UserService {
 
-    User syncUserOnLogin(Jwt jwt);
+    User syncUser(Jwt jwt);
 }

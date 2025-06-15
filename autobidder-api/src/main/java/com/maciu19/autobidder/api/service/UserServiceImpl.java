@@ -8,6 +8,8 @@ import jakarta.transaction.Transactional;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
+
 @Service
 public class UserServiceImpl implements UserService {
 
@@ -18,18 +20,31 @@ public class UserServiceImpl implements UserService {
     }
 
     @Transactional
-    public User syncUserOnLogin(Jwt jwt) {
+    public User syncUser(Jwt jwt) {
         String keycloackId = jwt.getSubject();
 
-        return userRepository.findByKeycloackId(keycloackId)
-                .orElseGet(() -> {
-                    User newUser = new User();
-                    newUser.setKeycloakId(keycloackId);
-                    newUser.setEmail(jwt.getClaimAsString("email"));
-                    newUser.setFirstName(jwt.getClaimAsString("given_name"));
-                    newUser.setLastName(jwt.getClaimAsString("family_name"));
+        User user = userRepository.findByKeycloackId(keycloackId)
+                .orElseGet(() -> createNewUser(jwt));
 
-                    return userRepository.save(newUser);
-                });
+        if (user.getLastSyncedAt() == null || user.getLastSyncedAt().isBefore(LocalDateTime.now().minusHours(48))) {
+            user.setFirstName(jwt.getClaimAsString("given_name"));
+            user.setLastName(jwt.getClaimAsString("family_name"));
+            user.setLastSyncedAt(LocalDateTime.now());
+
+            user = userRepository.save(user);
+        }
+
+        return user;
+    }
+
+    private User createNewUser(Jwt jwt) {
+        User newUser = new User();
+        newUser.setKeycloakId(jwt.getSubject());
+        newUser.setEmail(jwt.getClaimAsString("email"));
+        newUser.setFirstName(jwt.getClaimAsString("given_name"));
+        newUser.setLastName(jwt.getClaimAsString("family_name"));
+        newUser.setLastSyncedAt(LocalDateTime.now());
+
+        return userRepository.save(newUser);
     }
 }

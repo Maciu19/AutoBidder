@@ -8,34 +8,49 @@ import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.security.oauth2.server.resource.authentication.JwtGrantedAuthoritiesConverter;
 
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class KeycloakJwtAuthConverter implements Converter<Jwt, AbstractAuthenticationToken> {
 
+    private final String clientId;
+
+    public KeycloakJwtAuthConverter(String clientId) {
+        this.clientId = clientId;
+    }
+
     @Override
     public AbstractAuthenticationToken convert(Jwt source) {
-        return new JwtAuthenticationToken(
-                source,
-                Stream.concat(
-                        new JwtGrantedAuthoritiesConverter().convert(source).stream(),
-                        extractResourceRoles(source).stream()
-                ).collect(Collectors.toSet())
-        );
+        Collection<GrantedAuthority> authorities = Stream.concat(
+                new JwtGrantedAuthoritiesConverter().convert(source).stream(),
+                extractResourceRoles(source).stream()
+        ).collect(Collectors.toSet());
+
+        return new JwtAuthenticationToken(source, authorities);
     }
 
     private Collection<? extends GrantedAuthority> extractResourceRoles(Jwt jwt) {
-        var resourceAccess = new HashMap<>(jwt.getClaim("resource.access"));
-        var eternal = (Map<String, List<String>>) resourceAccess.get("account");
-        var roles = eternal.get("roles");
+        Map<String, Object> resourceAccess = jwt.getClaim("resource_access");
+
+        if (resourceAccess == null || resourceAccess.isEmpty()) {
+            return Collections.emptySet();
+        }
+
+        Map<String, Object> clientRoles = (Map<String, Object>) resourceAccess.get(this.clientId);
+
+        if (clientRoles == null || clientRoles.isEmpty()) {
+            return Collections.emptySet();
+        }
+
+        Collection<String> roles = (Collection<String>) clientRoles.get("roles");
+
+        if (roles == null || roles.isEmpty()) {
+            return Collections.emptySet();
+        }
 
         return roles.stream()
-                .map(role -> new SimpleGrantedAuthority(
-                        "ROLE_" + role.replace("-", "_")))
+                .map(role -> new SimpleGrantedAuthority("ROLE_" + role))
                 .collect(Collectors.toSet());
     }
 }

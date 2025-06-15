@@ -7,6 +7,7 @@ import org.springframework.security.config.annotation.method.configuration.Enabl
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 
 @Configuration
@@ -18,18 +19,15 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
                 .cors(Customizer.withDefaults())
-                .csrf(AbstractHttpConfigurer::disable);
-//                .authorizeHttpRequests(req ->
-//                        req.requestMatchers(
-//                                "/auth/**"
-//                        )
-//                                .permitAll()
-//                        .anyRequest()
-//                                .authenticated()
-//                )
-//                .oauth2ResourceServer(auth ->
-//                        auth.jwt(token -> token.jwtAuthenticationConverter(new KeycloakJwtAuthConverter())));
-
+                .csrf(AbstractHttpConfigurer::disable)
+                .authorizeHttpRequests(req ->
+                        req.anyRequest().authenticated()
+                )
+                .oauth2ResourceServer(auth ->
+                        auth.jwt(token -> token.jwtAuthenticationConverter(
+                                new KeycloakJwtAuthConverter("autobidder-backend-service"))))
+                .sessionManagement(
+                        session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
 
         return http.build();
     }

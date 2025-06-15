@@ -49,9 +49,4 @@ public class Manufacturer {
         vehicleModels.add(model);
         model.setManufacturer(this);
     }
-
-    public void removeVehicleModel(VehicleModel model) {
-        vehicleModels.remove(model);
-        model.setManufacturer(null);
-    }
 }

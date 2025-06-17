@@ -2,8 +2,15 @@ package com.maciu19.autobidder.api.exception;
 
 import com.fasterxml.jackson.databind.exc.InvalidFormatException;
 import com.maciu19.autobidder.api.exception.exceptions.DuplicateResourceException;
+import com.maciu19.autobidder.api.exception.exceptions.FileUploadFailedException;
+import com.maciu19.autobidder.api.exception.exceptions.ForbiddenResourceException;
 import com.maciu19.autobidder.api.exception.exceptions.ResourceNotFoundException;
+
 import jakarta.servlet.http.HttpServletRequest;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.validation.FieldError;
@@ -19,6 +26,20 @@ import java.util.Map;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
+
+    private final static Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
+
+    @ExceptionHandler(Exception.class)
+    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+    public ErrorResponseDto handleGenericException(Exception ex, HttpServletRequest request) {
+        log.error("An unexpected error occurred for request on path: {}", request.getRequestURI(), ex);
+        String message = "An unexpected internal server error has occurred. Please contact support.";
+
+        return new ErrorResponseDto(
+                HttpStatus.INTERNAL_SERVER_ERROR,
+                message,
+                request.getRequestURI());
+    }
 
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ExceptionHandler(MethodArgumentNotValidException.class)
@@ -75,6 +96,30 @@ public class GlobalExceptionHandler {
         return new ErrorResponseDto(
                 HttpStatus.CONFLICT,
                 ex.getMessage(),
+                request.getRequestURI());
+    }
+
+    @ExceptionHandler(ForbiddenResourceException.class)
+    @ResponseStatus(HttpStatus.FORBIDDEN)
+    public ErrorResponseDto handleForbiddenResourceException(
+            ForbiddenResourceException ex, HttpServletRequest request
+    ) {
+        return new ErrorResponseDto(
+                HttpStatus.FORBIDDEN,
+                ex.getMessage(),
+                request.getRequestURI()
+        );
+    }
+
+    @ExceptionHandler(FileUploadFailedException.class)
+    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+    public ErrorResponseDto handleFileUploadFailed(FileUploadFailedException ex, HttpServletRequest request) {
+        log.error("File upload failed for request on path: {}", request.getRequestURI(), ex);
+        String message = "An unexpected error occurred during file upload. Please try again later.";
+
+        return new ErrorResponseDto(
+                HttpStatus.INTERNAL_SERVER_ERROR,
+                message,
                 request.getRequestURI());
     }
 }

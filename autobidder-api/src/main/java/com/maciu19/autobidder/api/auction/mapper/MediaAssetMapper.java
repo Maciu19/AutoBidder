@@ -9,7 +9,7 @@ import java.util.List;
 @Component
 public class MediaAssetMapper {
 
-    MediaAssetDto toDto(MediaAsset mediaAsset) {
+    public MediaAssetDto toDto(MediaAsset mediaAsset) {
         return new MediaAssetDto(
                 mediaAsset.getId(),
                 mediaAsset.getAuction().getId(),
@@ -21,7 +21,7 @@ public class MediaAssetMapper {
         );
     }
 
-    List<MediaAssetDto> toDtoList(List<MediaAsset> mediaAssetList) {
+    public List<MediaAssetDto> toDtoList(List<MediaAsset> mediaAssetList) {
         return mediaAssetList.stream().map(this::toDto).toList();
     }
 }

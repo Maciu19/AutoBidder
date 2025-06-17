@@ -28,14 +28,13 @@ CREATE TABLE auction (
 );
 
 CREATE TABLE media_assets (
-  id BIGINT PRIMARY KEY,
+  id BIGSERIAL PRIMARY KEY,
   auction_id UUID NOT NULL,
   file_url VARCHAR(2048) NOT NULL,
   file_type VARCHAR(50) NOT NULL,
   title VARCHAR(255),
   display_order INTEGER DEFAULT 0,
   created_date TIMESTAMP WITH TIME ZONE,
-  last_modified_date TIMESTAMP WITH TIME ZONE,
   CONSTRAINT fk_media_asset_auction FOREIGN KEY (auction_id) REFERENCES auction (id) ON DELETE CASCADE
 );
 

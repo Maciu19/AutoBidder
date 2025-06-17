@@ -123,4 +123,12 @@ public class Auction {
                 getStartTime().isBefore(now) &&
                 getEndTime().isAfter(now);
     }
+
+    public void addMediaAsset(MediaAsset mediaAsset) {
+        if (mediaAsset == null) {
+            throw new IllegalStateException("Media asset cannot be null");
+        }
+
+        mediaAssets.add(mediaAsset);
+    }
 }

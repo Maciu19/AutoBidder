@@ -8,6 +8,8 @@ import com.google.cloud.storage.StorageOptions;
 
 import jakarta.annotation.PostConstruct;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Service;
@@ -18,6 +20,8 @@ import java.util.UUID;
 
 @Service
 public class GcsFileStorageService implements FileStorageService {
+
+    private final static Logger log = LoggerFactory.getLogger(GcsFileStorageService.class);
 
     private final String bucketName;
     private final String credentialsLocation;
@@ -43,21 +47,43 @@ public class GcsFileStorageService implements FileStorageService {
     }
 
     @Override
-    public String uploadFile(MultipartFile file) throws IOException {
+    public String uploadFile(MultipartFile file, String directory) throws IOException {
         if (file.isEmpty()) {
             throw new IOException("Failed to store empty file.");
         }
 
-        String fileName = generateUniqueFileName(file.getOriginalFilename());
+        String uniqueFileName = generateUniqueFileName(file.getOriginalFilename());
+        String objectName = directory + "/" + uniqueFileName;
 
-        BlobId blobId = BlobId.of(bucketName, fileName);
+        BlobId blobId = BlobId.of(bucketName, objectName);
         BlobInfo blobInfo = BlobInfo.newBuilder(blobId)
                 .setContentType(file.getContentType())
                 .build();
 
         storage.create(blobInfo, file.getBytes());
 
-        return "https://storage.googleapis.com/" + bucketName + "/" + fileName;
+        return "https://storage.googleapis.com/" + bucketName + "/" + objectName;
+    }
+
+    @Override
+    public void deleteFile(String fileUrl) throws IOException {
+        if (fileUrl == null || fileUrl.isBlank()) {
+            return;
+        }
+
+        String objectName = fileUrl.substring(("https://storage.googleapis.com/" + bucketName + "/").length());
+
+        try {
+            BlobId blobId = BlobId.of(bucketName, objectName);
+            boolean deleted = storage.delete(blobId);
+            if (deleted) {
+                log.info("File deleted successfully from GCS: {} ", objectName);
+            } else {
+               log.info("File not found in GCS, nothing to delete: {} ", objectName);
+            }
+        } catch (Exception e) {
+            throw new IOException("Error deleting file from GCS: " + objectName, e);
+        }
     }
 
     private String generateUniqueFileName(String originalFilename) {

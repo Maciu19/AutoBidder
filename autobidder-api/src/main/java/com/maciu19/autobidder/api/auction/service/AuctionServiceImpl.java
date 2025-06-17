@@ -3,10 +3,15 @@ package com.maciu19.autobidder.api.auction.service;
 import com.maciu19.autobidder.api.auction.dto.AuctionResponseDto;
 import com.maciu19.autobidder.api.auction.dto.AuctionSummaryDto;
 import com.maciu19.autobidder.api.auction.dto.CreateAuctionRequest;
+import com.maciu19.autobidder.api.auction.model.FileType;
+import com.maciu19.autobidder.api.auction.model.MediaAsset;
+import com.maciu19.autobidder.api.auction.repository.MediaAssetRepository;
 import com.maciu19.autobidder.api.exception.exceptions.DuplicateResourceException;
+import com.maciu19.autobidder.api.exception.exceptions.ForbiddenResourceException;
 import com.maciu19.autobidder.api.exception.exceptions.ResourceNotFoundException;
 import com.maciu19.autobidder.api.auction.model.Auction;
 import com.maciu19.autobidder.api.auction.mapper.AuctionMapper;
+import com.maciu19.autobidder.api.shared.filestorage.FileStorageService;
 import com.maciu19.autobidder.api.user.model.User;
 import com.maciu19.autobidder.api.vehicle.model.VehicleEngineOption;
 import com.maciu19.autobidder.api.auction.repository.AuctionRepository;
@@ -15,7 +20,9 @@ import com.maciu19.autobidder.api.vehicle.repository.VehicleEngineOptionReposito
 import jakarta.transaction.Transactional;
 
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
@@ -25,14 +32,20 @@ public class AuctionServiceImpl implements AuctionService {
 
     private final VehicleEngineOptionRepository vehicleEngineOptionRepository;
     private final AuctionRepository auctionRepository;
+    private final MediaAssetRepository mediaAssetRepository;
+    private final FileStorageService fileStorageService;
     private final AuctionMapper auctionMapper;
 
     public AuctionServiceImpl(
             VehicleEngineOptionRepository vehicleEngineOptionRepository,
             AuctionRepository auctionRepository,
+            MediaAssetRepository mediaAssetRepository,
+            FileStorageService fileStorageService,
             AuctionMapper auctionMapper) {
         this.vehicleEngineOptionRepository = vehicleEngineOptionRepository;
         this.auctionRepository = auctionRepository;
+        this.mediaAssetRepository = mediaAssetRepository;
+        this.fileStorageService = fileStorageService;
         this.auctionMapper = auctionMapper;
     }
 
@@ -88,5 +101,63 @@ public class AuctionServiceImpl implements AuctionService {
         Auction savedAuction = auctionRepository.save(auction);
 
         return auctionMapper.toDto(savedAuction);
+    }
+
+    @Override
+    @Transactional
+    public MediaAsset addMediaToAuction(
+            UUID auctionId, User currentUser,
+            MultipartFile file, String title,
+            FileType fileType, Integer displayOrder) throws IOException {
+        Auction auction = auctionRepository.findById(auctionId)
+                .orElseThrow(() -> new ResourceNotFoundException("Auction not found with id: " + auctionId));
+
+        if (!auction.getSeller().getId().equals(currentUser.getId())) {
+            throw new ForbiddenResourceException("You do not have permission to add media to this auction.");
+        }
+
+        String fileUrl = fileStorageService.uploadFile(file, auctionId.toString());
+
+        MediaAsset newAsset = new MediaAsset();
+        newAsset.setAuction(auction);
+        newAsset.setFileUrl(fileUrl);
+        newAsset.setTitle(title);
+        newAsset.setFileType(fileType);
+
+        if (displayOrder == null) {
+            newAsset.setDisplayOrder(auction.getMediaAssets().size());
+        } else {
+            newAsset.setDisplayOrder(displayOrder);
+        }
+
+        auction.addMediaAsset(newAsset);
+
+        Auction savedAuction = auctionRepository.save(auction);
+
+        int lastIndex = savedAuction.getMediaAssets().size() - 1;
+        if (lastIndex < 0) {
+            throw new IllegalStateException("Could not find the newly saved media asset.");
+        }
+
+        return savedAuction.getMediaAssets().get(lastIndex);
+    }
+
+    @Override
+    @Transactional
+    public void removeMediaAssetFromAuction(UUID auctionId, Long mediaAssetId, User currentUser) throws IOException {
+        MediaAsset asset = mediaAssetRepository.findById(mediaAssetId)
+                .orElseThrow(() -> new ResourceNotFoundException("Media asset not found with id: " + mediaAssetId));
+
+        if (!asset.getAuction().getId().equals(auctionId)) {
+            throw new ForbiddenResourceException("Media asset does not belong to the specified auction.");
+        }
+
+        if (!asset.getAuction().getSeller().getId().equals(currentUser.getId())) {
+            throw new ForbiddenResourceException("You do not have permission to delete this media asset.");
+        }
+
+        fileStorageService.deleteFile(asset.getFileUrl());
+
+        mediaAssetRepository.delete(asset);
     }
 }

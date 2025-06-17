@@ -33,6 +33,7 @@ public class AuctionMapper {
                 auction.isNoCrashRegistered(),
                 auction.getMakeYear(),
                 auction.getMileage(),
+                auction.getFeatures(),
                 auction.getExteriorColor(),
                 auction.getInteriorColor(),
                 auction.getDescription(),

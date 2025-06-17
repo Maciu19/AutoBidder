@@ -4,6 +4,9 @@ import com.maciu19.autobidder.api.model.enums.Feature;
 import com.maciu19.autobidder.api.model.enums.SteeringWheelSide;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.annotations.Type;
+import org.hibernate.type.SqlTypes;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
@@ -83,28 +86,22 @@ public class Auction {
     @Column(name = "feature", nullable = false)
     private Set<Feature> features = new HashSet<>();
 
-    @Lob
-    @Column(columnDefinition = "TEXT")
+    @Column(name = "description")
     private String description;
 
-    @Lob
-    @Column(columnDefinition = "TEXT")
+    @Column(name = "modifications")
     private String modifications;
 
-    @Lob
-    @Column(columnDefinition = "TEXT")
+    @Column(name = "knownFlaws")
     private String knownFlaws;
 
-    @Lob
-    @Column(columnDefinition = "TEXT")
+    @Column(name = "recent_service_history")
     private String recentServiceHistory;
 
-    @Lob
-    @Column(columnDefinition = "TEXT")
+    @Column(name = "other_items_included")
     private String otherItemsIncluded;
 
-    @Lob
-    @Column(columnDefinition = "TEXT")
+    @Column(name = "ownershipHistory")
     private String ownershipHistory;
 
     @CreatedDate

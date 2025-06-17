@@ -2,9 +2,7 @@ package com.maciu19.autobidder.api.controller;
 
 import com.maciu19.autobidder.api.controller.dtos.AuctionResponseDto;
 import com.maciu19.autobidder.api.controller.dtos.CreateAuctionRequest;
-import com.maciu19.autobidder.api.model.Auction;
 import com.maciu19.autobidder.api.model.User;
-import com.maciu19.autobidder.api.repository.AuctionRepository;
 import com.maciu19.autobidder.api.service.AuctionService;
 import com.maciu19.autobidder.api.service.UserService;
 

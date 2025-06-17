@@ -2,14 +2,19 @@ package com.maciu19.autobidder.api.service;
 
 import com.maciu19.autobidder.api.controller.dtos.AuctionResponseDto;
 import com.maciu19.autobidder.api.controller.dtos.CreateAuctionRequest;
+import com.maciu19.autobidder.api.exceptions.DuplicateResourceException;
+import com.maciu19.autobidder.api.exceptions.ResourceNotFoundException;
 import com.maciu19.autobidder.api.model.Auction;
 import com.maciu19.autobidder.api.model.dtos.AuctionMapper;
 import com.maciu19.autobidder.api.model.User;
 import com.maciu19.autobidder.api.model.VehicleEngineOption;
 import com.maciu19.autobidder.api.repository.AuctionRepository;
 import com.maciu19.autobidder.api.repository.VehicleEngineOptionRepository;
+
 import jakarta.transaction.Transactional;
+
 import org.springframework.stereotype.Service;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 
 import java.time.LocalDateTime;
 
@@ -32,9 +37,13 @@ public class AuctionServiceImpl implements AuctionService {
     @Override
     @Transactional
     public AuctionResponseDto createAuction(CreateAuctionRequest request, User seller) {
+        if (auctionRepository.findByVin(request.vin()).isPresent()) {
+            throw new DuplicateResourceException("An auction with VIN '" + request.vin() + "' already exists.");
+        }
+
         VehicleEngineOption vehicle = vehicleEngineOptionRepository
                 .findByIdWithDetails(request.vehicleEngineOptionId())
-                .orElseThrow(() -> new RuntimeException("Vehicle not found with id: " + request.vehicleEngineOptionId()));
+                .orElseThrow(() -> new ResourceNotFoundException("Vehicle not found with id: " + request.vehicleEngineOptionId()));
 
         Auction auction = new Auction();
 

@@ -33,7 +33,7 @@ public class Auction {
     private User seller;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "vehicle_id", nullable = false)
+    @JoinColumn(name = "vehicle_engine_option_id", nullable = false)
     private VehicleEngineOption vehicleEngineOption;
 
     @Column(name = "vin", unique = true, nullable = false)

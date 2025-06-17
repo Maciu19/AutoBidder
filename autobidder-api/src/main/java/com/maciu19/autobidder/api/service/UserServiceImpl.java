@@ -5,7 +5,9 @@ import com.maciu19.autobidder.api.repository.UserRepository;
 
 import jakarta.transaction.Transactional;
 
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -17,6 +19,26 @@ public class UserServiceImpl implements UserService {
 
     public UserServiceImpl(UserRepository userRepository) {
         this.userRepository = userRepository;
+    }
+
+    @Override
+    public User getCurrentUser() {
+        var auth = SecurityContextHolder.getContext().getAuthentication();
+
+        if (!(auth instanceof JwtAuthenticationToken)) {
+            throw new IllegalStateException("User is not authenticated or authentication token is not a JWT.");
+        }
+
+        Jwt jwt = ((JwtAuthenticationToken) auth).getToken();
+        return getCurrentUser(jwt);
+    }
+
+    @Override
+    public User getCurrentUser(Jwt jwt) {
+        String keycloakId = jwt.getSubject();
+
+        return userRepository.findByKeycloackId(keycloakId)
+                .orElseThrow(() -> new IllegalStateException("Authenticated user not found in local database. Sync filter may have failed."));
     }
 
     @Transactional

@@ -4,8 +4,10 @@ import com.maciu19.autobidder.api.model.Manufacturer;
 import com.maciu19.autobidder.api.model.VehicleEngineOption;
 import com.maciu19.autobidder.api.model.VehicleModel;
 import com.maciu19.autobidder.api.model.VehicleModelGeneration;
+import com.maciu19.autobidder.api.model.dtos.VehicleInfo;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 public interface VehicleService {
@@ -17,4 +19,6 @@ public interface VehicleService {
     List<VehicleModelGeneration> getAllModelGenerationForVehicleModel(UUID vehicleModelId);
 
     List<VehicleEngineOption> getAllEngineOptionsForModelGeneration(UUID vehicleModelGenerationId);
+
+    Optional<VehicleInfo> getVehicleInfo(UUID vehicleEngineOptionId);
 }

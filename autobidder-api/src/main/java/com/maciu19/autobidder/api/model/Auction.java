@@ -1,0 +1,117 @@
+package com.maciu19.autobidder.api.model;
+
+import com.maciu19.autobidder.api.model.enums.Feature;
+import com.maciu19.autobidder.api.model.enums.SteeringWheelSide;
+import jakarta.persistence.*;
+import lombok.*;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
+
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.Year;
+import java.util.*;
+
+@Getter
+@Setter
+@Entity
+@Table(name = "auction")
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+@EntityListeners(AuditingEntityListener.class)
+public class Auction {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.UUID)
+    @Column(nullable = false)
+    private UUID id;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "seller_id", nullable = false)
+    private User seller;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "vehicle_id", nullable = false)
+    private VehicleEngineOption vehicleEngineOption;
+
+    @Column(name = "vin", unique = true, nullable = false)
+    private String vin;
+
+    @Column(name = "location")
+    private String location;
+
+    @Column(name = "starting_price")
+    private Double startingPrice;
+
+    @Column(name = "end_time")
+    private LocalDateTime endTime;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "steering_wheel_side", length = 50)
+    private SteeringWheelSide steeringWheelSide;
+
+    @Column(name = "has_warranty")
+    private boolean hasWarranty;
+
+    @Column(name = "no_crash_registered")
+    private boolean noCrashRegistered;
+
+    @Column(name = "make_year")
+    private Year makeYear;
+
+    @Column(name = "mileage")
+    private int mileage;
+
+    @Column(name = "exterior_color")
+    private String exteriorColor;
+
+    @Column(name = "interior_color")
+    private String interiorColor;
+
+    @OneToMany(
+            mappedBy = "auction",
+            cascade = CascadeType.ALL,
+            orphanRemoval = true
+    )
+    private List<MediaAsset> mediaAssets = new ArrayList<>();
+
+    @ElementCollection(targetClass = Feature.class, fetch = FetchType.EAGER)
+    @CollectionTable(name = "auction_features", joinColumns = @JoinColumn(name = "auction_id"))
+    @Enumerated(EnumType.STRING)
+    @Column(name = "feature", nullable = false)
+    private Set<Feature> features = new HashSet<>();
+
+    @Lob
+    @Column(columnDefinition = "TEXT")
+    private String description;
+
+    @Lob
+    @Column(columnDefinition = "TEXT")
+    private String modifications;
+
+    @Lob
+    @Column(columnDefinition = "TEXT")
+    private String knownFlaws;
+
+    @Lob
+    @Column(columnDefinition = "TEXT")
+    private String recentServiceHistory;
+
+    @Lob
+    @Column(columnDefinition = "TEXT")
+    private String otherItemsIncluded;
+
+    @Lob
+    @Column(columnDefinition = "TEXT")
+    private String ownershipHistory;
+
+    @CreatedDate
+    @Column(name = "created_date")
+    private Instant createdDate;
+
+    @LastModifiedDate
+    @Column(name = "last_modified_date")
+    private Instant lastModifiedDate;
+}

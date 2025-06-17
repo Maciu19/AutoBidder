@@ -36,7 +36,10 @@ public class GcsFileStorageService implements FileStorageService {
         GoogleCredentials credentials = GoogleCredentials.fromStream(
                 new ClassPathResource(credentialsLocation).getInputStream()
         );
-        this.storage = StorageOptions.newBuilder().setCredentials(credentials).build().getService();
+        this.storage = StorageOptions.newBuilder()
+                .setCredentials(credentials)
+                .build()
+                .getService();
     }
 
     @Override
@@ -62,6 +65,6 @@ public class GcsFileStorageService implements FileStorageService {
         if (originalFilename != null && originalFilename.contains(".")) {
             fileExtension = originalFilename.substring(originalFilename.lastIndexOf("."));
         }
-        return UUID.randomUUID().toString() + fileExtension;
+        return UUID.randomUUID() + fileExtension;
     }
 }

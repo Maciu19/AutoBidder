@@ -1,6 +1,7 @@
 package com.maciu19.autobidder.api.controller.dtos;
 
 import com.maciu19.autobidder.api.model.User;
+import com.maciu19.autobidder.api.model.dtos.MediaAssetDto;
 import com.maciu19.autobidder.api.model.dtos.VehicleInfo;
 import com.maciu19.autobidder.api.model.enums.Feature;
 import com.maciu19.autobidder.api.model.enums.SteeringWheelSide;
@@ -8,6 +9,7 @@ import com.maciu19.autobidder.api.model.enums.SteeringWheelSide;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.Year;
+import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
@@ -25,6 +27,7 @@ public record AuctionResponseDto (
     Year makeYear,
     int mileage,
     Set<Feature> features,
+    List<MediaAssetDto> mediaAssets,
     String exteriorColor,
     String interiorColor,
     String description,

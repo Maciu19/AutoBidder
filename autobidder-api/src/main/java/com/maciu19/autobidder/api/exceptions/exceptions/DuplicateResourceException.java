@@ -1,4 +1,4 @@
-package com.maciu19.autobidder.api.exceptions;
+package com.maciu19.autobidder.api.exceptions.exceptions;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ResponseStatus;

@@ -1,6 +1,6 @@
 package com.maciu19.autobidder.api.security;
 
-import com.maciu19.autobidder.api.service.UserService;
+import com.maciu19.autobidder.api.user.service.UserService;
 import io.micrometer.common.lang.NonNull;
 
 import jakarta.servlet.FilterChain;

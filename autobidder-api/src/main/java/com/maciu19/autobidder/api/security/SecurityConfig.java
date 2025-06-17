@@ -1,6 +1,6 @@
 package com.maciu19.autobidder.api.security;
 
-import com.maciu19.autobidder.api.service.UserService;
+import com.maciu19.autobidder.api.user.service.UserService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.Customizer;

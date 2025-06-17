@@ -15,10 +15,13 @@ import java.util.UUID;
 public record AuctionResponseDto (
     UUID id,
     User seller,
+    String title,
+    boolean active,
     VehicleInfo vehicleInfo,
     String vin,
     String location,
     Double startingPrice,
+    LocalDateTime startTime,
     LocalDateTime endTime,
     SteeringWheelSide steeringWheelSide,
     boolean hasWarranty,

@@ -1,6 +1,7 @@
 package com.maciu19.autobidder.api.auction.service;
 
 import com.maciu19.autobidder.api.auction.dto.AuctionResponseDto;
+import com.maciu19.autobidder.api.auction.dto.AuctionSummaryDto;
 import com.maciu19.autobidder.api.auction.dto.CreateAuctionRequest;
 import com.maciu19.autobidder.api.exception.exceptions.DuplicateResourceException;
 import com.maciu19.autobidder.api.exception.exceptions.ResourceNotFoundException;
@@ -16,6 +17,8 @@ import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.List;
+import java.util.UUID;
 
 @Service
 public class AuctionServiceImpl implements AuctionService {
@@ -31,6 +34,22 @@ public class AuctionServiceImpl implements AuctionService {
         this.vehicleEngineOptionRepository = vehicleEngineOptionRepository;
         this.auctionRepository = auctionRepository;
         this.auctionMapper = auctionMapper;
+    }
+
+    @Override
+    public List<AuctionSummaryDto> getActiveAuctions() {
+        LocalDateTime now = LocalDateTime.now();
+        List<Auction> activeAuctions = auctionRepository.findActiveAuctionsForList(now);
+
+        return auctionMapper.toListSummaryDto(activeAuctions);
+    }
+
+    @Override
+    public AuctionResponseDto getAuctionById(UUID auctionId) {
+        Auction auction = auctionRepository.findByIdWithDetails(auctionId)
+                .orElseThrow(() -> new ResourceNotFoundException("Auction not found with id: " + auctionId));
+
+        return auctionMapper.toDto(auction);
     }
 
     @Override
@@ -51,7 +70,6 @@ public class AuctionServiceImpl implements AuctionService {
         auction.setVin(request.vin());
         auction.setLocation(request.location());
         auction.setStartingPrice(request.startingPrice());
-        auction.setEndTime(LocalDateTime.now().plusDays(request.durationInDays()));
         auction.setSteeringWheelSide(request.steeringWheelside());
         auction.setHasWarranty(request.hasWarranty());
         auction.setNoCrashRegistered(request.noCrashRegistered());

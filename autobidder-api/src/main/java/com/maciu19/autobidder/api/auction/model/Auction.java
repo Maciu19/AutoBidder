@@ -45,6 +45,9 @@ public class Auction {
     @Column(name = "starting_price")
     private Double startingPrice;
 
+    @Column(name = "start_time")
+    private LocalDateTime startTime;
+
     @Column(name = "end_time")
     private LocalDateTime endTime;
 
@@ -72,6 +75,7 @@ public class Auction {
 
     @OneToMany(
             mappedBy = "auction",
+            fetch = FetchType.LAZY,
             cascade = CascadeType.ALL,
             orphanRemoval = true
     )
@@ -82,6 +86,9 @@ public class Auction {
     @Enumerated(EnumType.STRING)
     @Column(name = "feature", nullable = false)
     private Set<Feature> features = new HashSet<>();
+
+    @Column(name = "title")
+    private String title;
 
     @Column(name = "description")
     private String description;
@@ -108,4 +115,12 @@ public class Auction {
     @LastModifiedDate
     @Column(name = "last_modified_date")
     private Instant lastModifiedDate;
+
+    public boolean isActive() {
+        LocalDateTime now = LocalDateTime.now();
+
+        return getStartTime() != null && getEndTime() != null &&
+                getStartTime().isBefore(now) &&
+                getEndTime().isAfter(now);
+    }
 }

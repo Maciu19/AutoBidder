@@ -24,11 +24,6 @@ public record CreateAuctionRequest (
     @Positive(message = "Starting price must be a positive number.")
     Double startingPrice,
 
-    @NotNull(message = "Duration must be specified.")
-    @Min(value = 1, message = "Duration must be at least 1 day.")
-    @Max(value = 14, message = "Duration cannot be more than 14 days.")
-    Integer durationInDays,
-
     @NotNull(message = "Steering wheel side must be specified.")
     SteeringWheelSide steeringWheelside,
 

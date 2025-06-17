@@ -4,8 +4,10 @@ CREATE TABLE auction (
   vehicle_engine_option_id UUID NOT NULL,
   vin VARCHAR(255) NOT NULL UNIQUE,
   location VARCHAR(255),
+  title VARCHAR(255),
   starting_price DOUBLE PRECISION,
   end_time TIMESTAMP WITHOUT TIME ZONE,
+  start_time TIMESTAMP WITHOUT TIME ZONE,
   steering_wheel_side VARCHAR(50),
   has_warranty BOOLEAN,
   no_crash_registered BOOLEAN,
@@ -32,6 +34,8 @@ CREATE TABLE media_assets (
   file_type VARCHAR(50) NOT NULL,
   title VARCHAR(255),
   display_order INTEGER DEFAULT 0,
+  created_date TIMESTAMP WITH TIME ZONE,
+  last_modified_date TIMESTAMP WITH TIME ZONE,
   CONSTRAINT fk_media_asset_auction FOREIGN KEY (auction_id) REFERENCES auction (id) ON DELETE CASCADE
 );
 

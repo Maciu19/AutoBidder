@@ -4,6 +4,7 @@ import com.maciu19.autobidder.api.auction.model.Feature;
 import com.maciu19.autobidder.api.auction.model.SteeringWheelSide;
 import jakarta.validation.constraints.*;
 
+import java.math.BigDecimal;
 import java.time.Year;
 import java.util.Set;
 import java.util.UUID;
@@ -22,7 +23,7 @@ public record CreateAuctionRequest (
 
     @NotNull(message = "Starting price cannot be null.")
     @Positive(message = "Starting price must be a positive number.")
-    Double startingPrice,
+    BigDecimal startingPrice,
 
     @NotNull(message = "Steering wheel side must be specified.")
     SteeringWheelSide steeringWheelside,

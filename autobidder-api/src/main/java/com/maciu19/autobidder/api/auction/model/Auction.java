@@ -1,5 +1,6 @@
 package com.maciu19.autobidder.api.auction.model;
 
+import com.maciu19.autobidder.api.bid.model.Bid;
 import com.maciu19.autobidder.api.user.model.User;
 import com.maciu19.autobidder.api.vehicle.model.VehicleEngineOption;
 import jakarta.persistence.*;
@@ -8,6 +9,7 @@ import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
+import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.Year;
@@ -43,13 +45,32 @@ public class Auction {
     private String location;
 
     @Column(name = "starting_price")
-    private Double startingPrice;
+    private BigDecimal startingPrice;
 
     @Column(name = "start_time")
     private LocalDateTime startTime;
 
     @Column(name = "end_time")
     private LocalDateTime endTime;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "status", length = 50)
+    private AuctionStatus status;
+
+    @Column(name = "current_price")
+    private BigDecimal currentPrice;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "winning_user_id")
+    private User winningUser;
+
+    @OneToMany(
+            fetch = FetchType.LAZY,
+            cascade = CascadeType.ALL,
+            mappedBy = "auction",
+            orphanRemoval = true
+    )
+    private List<Bid> bids = new ArrayList<>();
 
     @Enumerated(EnumType.STRING)
     @Column(name = "steering_wheel_side", length = 50)
@@ -117,11 +138,7 @@ public class Auction {
     private Instant lastModifiedDate;
 
     public boolean isActive() {
-        LocalDateTime now = LocalDateTime.now();
-
-        return getStartTime() != null && getEndTime() != null &&
-                getStartTime().isBefore(now) &&
-                getEndTime().isAfter(now);
+        return this.status == AuctionStatus.ACTIVE;
     }
 
     public void addMediaAsset(MediaAsset mediaAsset) {

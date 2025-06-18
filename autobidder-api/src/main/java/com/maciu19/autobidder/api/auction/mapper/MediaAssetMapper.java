@@ -10,6 +10,10 @@ import java.util.List;
 public class MediaAssetMapper {
 
     public MediaAssetDto toDto(MediaAsset mediaAsset) {
+        if (mediaAsset == null) {
+            return null;
+        }
+
         return new MediaAssetDto(
                 mediaAsset.getId(),
                 mediaAsset.getAuction().getId(),

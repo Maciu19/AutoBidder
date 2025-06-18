@@ -4,6 +4,10 @@ import com.maciu19.autobidder.api.auction.dto.AuctionResponseDto;
 import com.maciu19.autobidder.api.auction.dto.AuctionSummaryDto;
 import com.maciu19.autobidder.api.auction.dto.MediaAssetDto;
 import com.maciu19.autobidder.api.auction.model.Auction;
+import com.maciu19.autobidder.api.bid.dto.BidDto;
+import com.maciu19.autobidder.api.bid.mapper.BidMapper;
+import com.maciu19.autobidder.api.user.dto.UserDto;
+import com.maciu19.autobidder.api.user.mapper.UserMapper;
 import com.maciu19.autobidder.api.vehicle.dto.VehicleInfo;
 import com.maciu19.autobidder.api.vehicle.mapper.VehicleInfoMapper;
 import org.springframework.stereotype.Component;
@@ -15,12 +19,18 @@ public class AuctionMapper {
 
     private final VehicleInfoMapper vehicleInfoMapper;
     private final MediaAssetMapper mediaAssetMapper;
+    private final UserMapper userMapper;
+    private final BidMapper bidMapper;
 
     public AuctionMapper(
             VehicleInfoMapper vehicleInfoMapper,
-            MediaAssetMapper mediaAssetMapper) {
+            MediaAssetMapper mediaAssetMapper,
+            UserMapper userMapper,
+            BidMapper bidMapper) {
         this.vehicleInfoMapper = vehicleInfoMapper;
         this.mediaAssetMapper = mediaAssetMapper;
+        this.userMapper = userMapper;
+        this.bidMapper = bidMapper;
     }
 
     public AuctionSummaryDto toSummaryDto(Auction auction) {
@@ -33,9 +43,12 @@ public class AuctionMapper {
         return new AuctionSummaryDto(
                 auction.getId(),
                 auction.getTitle(),
+                auction.getStatus(),
                 auction.getStartingPrice(),
+                auction.getCurrentPrice(),
                 auction.getEndTime(),
-                thumbnailUrl
+                thumbnailUrl,
+                auction.getBids().size()
         );
     }
 
@@ -48,29 +61,36 @@ public class AuctionMapper {
             return null;
         }
 
-        VehicleInfo vehicleInfoDto = vehicleInfoMapper.toVehicleInfo(auction.getVehicleEngineOption());
         List<MediaAssetDto> mediaAssetDtoList = mediaAssetMapper.toDtoList(auction.getMediaAssets());
+        List<BidDto> bids = bidMapper.toListDto(auction.getBids());
+
+        VehicleInfo vehicleInfoDto = vehicleInfoMapper.toVehicleInfo(auction.getVehicleEngineOption());
+        UserDto seller = userMapper.toDto(auction.getSeller());
+        UserDto winner = userMapper.toDto(auction.getWinningUser());
 
         return new AuctionResponseDto(
                 auction.getId(),
-                auction.getSeller(),
-                auction.getTitle(),
-                auction.isActive(),
+                seller,
                 vehicleInfoDto,
                 auction.getVin(),
                 auction.getLocation(),
                 auction.getStartingPrice(),
                 auction.getStartTime(),
                 auction.getEndTime(),
+                auction.getStatus(),
+                auction.getCurrentPrice(),
+                winner,
+                bids,
                 auction.getSteeringWheelSide(),
                 auction.isHasWarranty(),
                 auction.isNoCrashRegistered(),
                 auction.getMakeYear(),
                 auction.getMileage(),
-                auction.getFeatures(),
-                mediaAssetDtoList,
                 auction.getExteriorColor(),
                 auction.getInteriorColor(),
+                mediaAssetDtoList,
+                auction.getFeatures(),
+                auction.getTitle(),
                 auction.getDescription(),
                 auction.getModifications(),
                 auction.getKnownFlaws(),

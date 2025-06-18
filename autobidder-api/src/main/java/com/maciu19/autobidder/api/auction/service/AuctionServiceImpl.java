@@ -3,6 +3,7 @@ package com.maciu19.autobidder.api.auction.service;
 import com.maciu19.autobidder.api.auction.dto.AuctionResponseDto;
 import com.maciu19.autobidder.api.auction.dto.AuctionSummaryDto;
 import com.maciu19.autobidder.api.auction.dto.CreateAuctionRequest;
+import com.maciu19.autobidder.api.auction.model.AuctionStatus;
 import com.maciu19.autobidder.api.auction.model.FileType;
 import com.maciu19.autobidder.api.auction.model.MediaAsset;
 import com.maciu19.autobidder.api.auction.repository.MediaAssetRepository;
@@ -19,6 +20,7 @@ import com.maciu19.autobidder.api.vehicle.repository.VehicleEngineOptionReposito
 
 import jakarta.transaction.Transactional;
 
+import org.hibernate.Hibernate;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -51,8 +53,7 @@ public class AuctionServiceImpl implements AuctionService {
 
     @Override
     public List<AuctionSummaryDto> getActiveAuctions() {
-        LocalDateTime now = LocalDateTime.now();
-        List<Auction> activeAuctions = auctionRepository.findActiveAuctionsForList(now);
+        List<Auction> activeAuctions = auctionRepository.findActiveAuctionsForList(AuctionStatus.ACTIVE);
 
         return auctionMapper.toListSummaryDto(activeAuctions);
     }
@@ -66,7 +67,7 @@ public class AuctionServiceImpl implements AuctionService {
     }
 
     @Override
-    @Transactional
+    @Transactional()
     public AuctionResponseDto createAuction(CreateAuctionRequest request, User seller) {
         if (auctionRepository.findByVin(request.vin()).isPresent()) {
             throw new DuplicateResourceException("An auction with VIN '" + request.vin() + "' already exists.");
@@ -80,6 +81,7 @@ public class AuctionServiceImpl implements AuctionService {
 
         auction.setSeller(seller);
         auction.setVehicleEngineOption(vehicle);
+        auction.setStatus(AuctionStatus.PENDING);
         auction.setVin(request.vin());
         auction.setLocation(request.location());
         auction.setStartingPrice(request.startingPrice());
@@ -99,6 +101,9 @@ public class AuctionServiceImpl implements AuctionService {
         auction.setFeatures(request.features());
 
         Auction savedAuction = auctionRepository.save(auction);
+
+        Hibernate.initialize(auction.getBids());
+        Hibernate.initialize(auction.getMediaAssets());
 
         return auctionMapper.toDto(savedAuction);
     }

@@ -17,6 +17,8 @@ import java.util.UUID;
 @Entity
 @Table(name = "bids")
 @NoArgsConstructor
+@AllArgsConstructor
+@Builder
 @EntityListeners(AuditingEntityListener.class)
 public class Bid {
 

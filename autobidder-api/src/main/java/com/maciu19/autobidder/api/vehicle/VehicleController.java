@@ -5,6 +5,7 @@ import com.maciu19.autobidder.api.vehicle.dto.VehicleEngineOptionDto;
 import com.maciu19.autobidder.api.vehicle.dto.VehicleModelDto;
 import com.maciu19.autobidder.api.vehicle.dto.VehicleModelGenerationDto;
 import com.maciu19.autobidder.api.vehicle.dto.VehicleInfo;
+import com.maciu19.autobidder.api.vehicle.mapper.VehicleInfoMapper;
 import com.maciu19.autobidder.api.vehicle.service.VehicleService;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,14 +26,18 @@ public class VehicleController {
     @Autowired
     private final VehicleService service;
 
-    public VehicleController(VehicleService service) {
+    @Autowired
+    private final VehicleInfoMapper vehicleInfoMapper;
+
+    public VehicleController(VehicleService service, VehicleInfoMapper vehicleInfoMapper) {
         this.service = service;
+        this.vehicleInfoMapper = vehicleInfoMapper;
     }
 
     @GetMapping(value = "/manufacturers")
     public ResponseEntity<List<ManufacturerDto>> findAll() {
         List<ManufacturerDto> dtos = service.getAllManufacturers()
-                .stream().map(ManufacturerDto::toDto)
+                .stream().map(vehicleInfoMapper::toDto)
                 .toList();
 
         return ResponseEntity.ok(dtos);
@@ -41,7 +46,7 @@ public class VehicleController {
     @GetMapping(value = "/manufacturers/{id}/models")
     public ResponseEntity<List<VehicleModelDto>> findAllModelsForManufacturer(@PathVariable("id") UUID id) {
         List<VehicleModelDto> dtos = service.getAllVehicleModelForManufacturer(id)
-                .stream().map(VehicleModelDto::toDto)
+                .stream().map(vehicleInfoMapper::toDto)
                 .toList();
 
         return ResponseEntity.ok(dtos);
@@ -50,7 +55,7 @@ public class VehicleController {
     @GetMapping(value = "/models/{id}/generations")
     public ResponseEntity<List<VehicleModelGenerationDto>> findAllModelGenerationsForModel(@PathVariable("id") UUID id) {
         List<VehicleModelGenerationDto> dtos = service.getAllModelGenerationForVehicleModel(id)
-                .stream().map(VehicleModelGenerationDto::toDto)
+                .stream().map(vehicleInfoMapper::toDto)
                 .toList();
 
         return ResponseEntity.ok(dtos);
@@ -59,7 +64,7 @@ public class VehicleController {
     @GetMapping(value = "/generations/{id}/engines")
     public ResponseEntity<List<VehicleEngineOptionDto>> findAllEnginesForGeneration(@PathVariable("id") UUID id) {
         List<VehicleEngineOptionDto> dtos = service.getAllEngineOptionsForModelGeneration(id)
-                .stream().map(VehicleEngineOptionDto::toDto)
+                .stream().map(vehicleInfoMapper::toDto)
                 .toList();
 
         return ResponseEntity.ok(dtos);

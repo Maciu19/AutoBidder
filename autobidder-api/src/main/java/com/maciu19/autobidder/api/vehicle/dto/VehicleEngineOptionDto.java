@@ -1,6 +1,5 @@
 package com.maciu19.autobidder.api.vehicle.dto;
 
-import com.maciu19.autobidder.api.vehicle.model.VehicleEngineOption;
 import com.maciu19.autobidder.api.vehicle.model.FuelType;
 
 import java.time.Instant;
@@ -13,15 +12,4 @@ public record VehicleEngineOptionDto(
         FuelType fuelType,
         Instant createdDate,
         Instant lastModifiedDate
-) {
-    public static VehicleEngineOptionDto toDto(VehicleEngineOption engineOption) {
-        return new VehicleEngineOptionDto(
-                engineOption.getId(),
-                engineOption.getUrl(),
-                engineOption.getName(),
-                engineOption.getFuelType(),
-                engineOption.getCreatedDate(),
-                engineOption.getLastModifiedDate()
-        );
-    }
-}
+) { }

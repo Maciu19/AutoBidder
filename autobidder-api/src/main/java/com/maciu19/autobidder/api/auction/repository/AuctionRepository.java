@@ -32,4 +32,6 @@ public interface AuctionRepository extends JpaRepository<Auction, UUID> {
             "LEFT JOIN FETCH a.bids " +
             "WHERE a.status = :status")
     List<Auction> findActiveAuctionsForList(@Param("status") AuctionStatus status);
+
+    List<Auction> findAllByStatusAndEndTimeBefore(AuctionStatus status, LocalDateTime now);
 }

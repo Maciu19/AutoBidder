@@ -11,6 +11,8 @@ import org.springframework.security.oauth2.server.resource.authentication.JwtAut
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.Optional;
+import java.util.UUID;
 
 @Service
 public class UserServiceImpl implements UserService {
@@ -19,6 +21,11 @@ public class UserServiceImpl implements UserService {
 
     public UserServiceImpl(UserRepository userRepository) {
         this.userRepository = userRepository;
+    }
+
+    @Override
+    public Optional<User> getUserById(UUID userId) {
+        return userRepository.findById(userId);
     }
 
     @Override

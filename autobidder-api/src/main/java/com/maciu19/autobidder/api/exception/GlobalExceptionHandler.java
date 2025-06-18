@@ -1,10 +1,8 @@
 package com.maciu19.autobidder.api.exception;
 
 import com.fasterxml.jackson.databind.exc.InvalidFormatException;
-import com.maciu19.autobidder.api.exception.exceptions.DuplicateResourceException;
-import com.maciu19.autobidder.api.exception.exceptions.FileUploadFailedException;
-import com.maciu19.autobidder.api.exception.exceptions.ForbiddenResourceException;
-import com.maciu19.autobidder.api.exception.exceptions.ResourceNotFoundException;
+import com.google.api.Http;
+import com.maciu19.autobidder.api.exception.exceptions.*;
 
 import jakarta.servlet.http.HttpServletRequest;
 
@@ -88,10 +86,13 @@ public class GlobalExceptionHandler {
                 request.getRequestURI());
     }
 
-    @ExceptionHandler(DuplicateResourceException.class)
+    @ExceptionHandler({
+            DuplicateResourceException.class,
+            ResourceConflictException.class
+    })
     @ResponseStatus(HttpStatus.CONFLICT)
-    public ErrorResponseDto handleDuplicateResourceException(
-            DuplicateResourceException ex, HttpServletRequest request
+    public ErrorResponseDto handleConflictResourceException(
+            Exception ex, HttpServletRequest request
     ) {
         return new ErrorResponseDto(
                 HttpStatus.CONFLICT,

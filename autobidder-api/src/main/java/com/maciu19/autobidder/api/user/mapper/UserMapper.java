@@ -17,7 +17,10 @@ public class UserMapper {
                 user.getKeycloakId(),
                 user.getEmail(),
                 user.getFirstName(),
-                user.getLastName()
+                user.getLastName(),
+                user.getLastSyncedAt(),
+                user.getCreatedDate(),
+                user.getLastModifiedDate()
         );
     }
 }

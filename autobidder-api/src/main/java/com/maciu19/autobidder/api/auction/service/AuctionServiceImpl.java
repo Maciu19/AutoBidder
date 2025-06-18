@@ -21,6 +21,9 @@ import com.maciu19.autobidder.api.vehicle.repository.VehicleEngineOptionReposito
 import jakarta.transaction.Transactional;
 
 import org.hibernate.Hibernate;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -31,6 +34,8 @@ import java.util.UUID;
 
 @Service
 public class AuctionServiceImpl implements AuctionService {
+
+    private final static Logger log = LoggerFactory.getLogger(AuctionServiceImpl.class);
 
     private final VehicleEngineOptionRepository vehicleEngineOptionRepository;
     private final AuctionRepository auctionRepository;
@@ -164,5 +169,23 @@ public class AuctionServiceImpl implements AuctionService {
         fileStorageService.deleteFile(asset.getFileUrl());
 
         mediaAssetRepository.delete(asset);
+    }
+
+    @Transactional
+    @Scheduled(fixedRate = 60000)
+    public void closeExpiredAuctions() {
+        List<Auction> expiredAuctions = auctionRepository
+                .findAllByStatusAndEndTimeBefore(AuctionStatus.ACTIVE, LocalDateTime.now());
+
+        if (expiredAuctions.isEmpty()) {
+            return;
+        }
+
+        for (Auction auction : expiredAuctions) {
+            log.warn("Auction id='{}' title='{}' has expired. Closing now.", auction.getId(), auction.getTitle());
+            auction.setStatus(AuctionStatus.ENDED);
+        }
+
+        auctionRepository.saveAll(expiredAuctions);
     }
 }

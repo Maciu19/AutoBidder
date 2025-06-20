@@ -1,10 +1,7 @@
 package com.maciu19.autobidder.api.vehicle;
 
-import com.maciu19.autobidder.api.vehicle.dto.ManufacturerDto;
-import com.maciu19.autobidder.api.vehicle.dto.VehicleEngineOptionDto;
-import com.maciu19.autobidder.api.vehicle.dto.VehicleModelDto;
-import com.maciu19.autobidder.api.vehicle.dto.VehicleModelGenerationDto;
-import com.maciu19.autobidder.api.vehicle.dto.VehicleInfo;
+import com.maciu19.autobidder.api.auction.model.Feature;
+import com.maciu19.autobidder.api.vehicle.dto.*;
 import com.maciu19.autobidder.api.vehicle.mapper.VehicleInfoMapper;
 import com.maciu19.autobidder.api.vehicle.service.VehicleService;
 
@@ -15,9 +12,8 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/vehicles")
@@ -76,5 +72,24 @@ public class VehicleController {
 
         return vehicleInfo.map(ResponseEntity::ok)
                 .orElseGet(() -> ResponseEntity.notFound().build());
+    }
+
+    @GetMapping("/features")
+    public ResponseEntity<Map<String, List<String>>> getAllFeaturesGroupByCategory() {
+        Map<String, List<String>> result = Arrays.stream(Feature.values())
+                .collect(Collectors.groupingBy(
+                        Feature::getCategory,
+                        Collectors.mapping(
+                                Feature::getId,
+                                Collectors.toList()
+                        )
+                ))
+                .entrySet().stream()
+                .collect(Collectors.toMap(
+                        entry -> entry.getKey().name(),
+                        Map.Entry::getValue
+                ));
+
+        return ResponseEntity.ok(result);
     }
 }

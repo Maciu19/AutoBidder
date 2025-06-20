@@ -16,6 +16,8 @@ import java.util.UUID;
 
 public interface AuctionService {
 
+    List<AuctionSummaryDto> getUserAuctions(User currentUser);
+
     List<AuctionSummaryDto> getActiveAuctions();
 
     AuctionResponseDto getAuctionById(UUID auctionId);

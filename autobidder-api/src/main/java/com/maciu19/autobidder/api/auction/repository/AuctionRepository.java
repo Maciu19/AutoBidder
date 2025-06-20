@@ -2,6 +2,7 @@ package com.maciu19.autobidder.api.auction.repository;
 
 import com.maciu19.autobidder.api.auction.model.Auction;
 import com.maciu19.autobidder.api.auction.model.AuctionStatus;
+import com.maciu19.autobidder.api.user.model.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -32,6 +33,12 @@ public interface AuctionRepository extends JpaRepository<Auction, UUID> {
             "LEFT JOIN FETCH a.bids " +
             "WHERE a.status = :status")
     List<Auction> findActiveAuctionsForList(@Param("status") AuctionStatus status);
+
+    @Query("SELECT a FROM Auction a " +
+            "JOIN FETCH a.seller s " +
+            "LEFT JOIN FETCH a.bids " +
+            "WHERE s = :user")
+    List<Auction> findAuctionByUser(@Param("user") User user);
 
     List<Auction> findAllByStatusAndEndTimeBefore(AuctionStatus status, LocalDateTime now);
 }

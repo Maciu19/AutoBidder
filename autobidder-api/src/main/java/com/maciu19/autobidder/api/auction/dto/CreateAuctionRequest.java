@@ -11,7 +11,7 @@ import java.util.UUID;
 
 public record CreateAuctionRequest (
 
-    @NotNull(message = "Vehicle engine option ID cannot be null.")
+    @NotNull(message = "Should select a vehicle for the auction")
     UUID vehicleEngineOptionId,
 
     @NotBlank(message = "VIN cannot be blank.")

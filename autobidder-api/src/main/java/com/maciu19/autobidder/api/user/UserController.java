@@ -28,12 +28,6 @@ public class UserController {
         this.userMapper = userMapper;
     }
 
-    @GetMapping("/me")
-    public ResponseEntity<UserDto> getCurrentUser() {
-        return ResponseEntity.ok(
-                userMapper.toDto(userService.getCurrentUser()));
-    }
-
     @GetMapping("/{id}")
     public ResponseEntity<UserDto> getUserById(@PathVariable UUID id) {
         Optional<User> user = userService.getUserById(id);

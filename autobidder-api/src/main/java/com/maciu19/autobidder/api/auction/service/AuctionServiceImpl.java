@@ -57,6 +57,13 @@ public class AuctionServiceImpl implements AuctionService {
     }
 
     @Override
+    public List<AuctionSummaryDto> getUserAuctions(User currentUser) {
+        List<Auction> auctions = auctionRepository.findAuctionByUser(currentUser);
+
+        return auctionMapper.toListSummaryDto(auctions);
+    }
+
+    @Override
     public List<AuctionSummaryDto> getActiveAuctions() {
         List<Auction> activeAuctions = auctionRepository.findActiveAuctionsForList(AuctionStatus.ACTIVE);
 

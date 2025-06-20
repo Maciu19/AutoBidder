@@ -6,6 +6,7 @@ import com.maciu19.autobidder.api.auction.model.AuctionStatus;
 import com.maciu19.autobidder.api.auction.repository.AuctionRepository;
 import com.maciu19.autobidder.api.bid.dto.BidRequestDto;
 import com.maciu19.autobidder.api.bid.model.Bid;
+import com.maciu19.autobidder.api.bid.repository.BidRepository;
 import com.maciu19.autobidder.api.exception.exceptions.ForbiddenResourceException;
 import com.maciu19.autobidder.api.exception.exceptions.ResourceConflictException;
 import com.maciu19.autobidder.api.exception.exceptions.ResourceNotFoundException;
@@ -14,20 +15,25 @@ import com.maciu19.autobidder.api.user.model.User;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 @Service
 public class BiddingServiceImpl implements BiddingService {
 
     private final AuctionRepository auctionRepository;
     private final UserMapper userMapper;
     private final SimpMessagingTemplate simpMessagingTemplate;
+    private final BidRepository bidRepository;
 
     public BiddingServiceImpl(
             AuctionRepository auctionRepository,
             UserMapper userMapper,
-            SimpMessagingTemplate simpMessagingTemplate) {
+            SimpMessagingTemplate simpMessagingTemplate,
+            BidRepository bidRepository) {
         this.auctionRepository = auctionRepository;
         this.userMapper = userMapper;
         this.simpMessagingTemplate = simpMessagingTemplate;
+        this.bidRepository = bidRepository;
     }
 
     @Override
@@ -71,5 +77,10 @@ public class BiddingServiceImpl implements BiddingService {
                 auction.getBids().size()
         );
         simpMessagingTemplate.convertAndSend(destination, updateDto);
+    }
+
+    @Override
+    public List<Bid> getBidsForUser(User currentUser) {
+        return bidRepository.findByUser(currentUser);
     }
 }

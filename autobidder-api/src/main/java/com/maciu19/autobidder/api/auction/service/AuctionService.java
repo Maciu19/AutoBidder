@@ -3,11 +3,13 @@ package com.maciu19.autobidder.api.auction.service;
 import com.maciu19.autobidder.api.auction.dto.AuctionResponseDto;
 import com.maciu19.autobidder.api.auction.dto.AuctionSummaryDto;
 import com.maciu19.autobidder.api.auction.dto.CreateAuctionRequest;
+import com.maciu19.autobidder.api.auction.dto.PriceRecommendationDto;
 import com.maciu19.autobidder.api.auction.model.FileType;
 import com.maciu19.autobidder.api.auction.model.MediaAsset;
 import com.maciu19.autobidder.api.user.model.User;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
@@ -32,4 +34,6 @@ public interface AuctionService {
                                  Integer displayOrder) throws IOException;
 
     void removeMediaAssetFromAuction(UUID auctionId, Long mediaAssetId, User currentUser) throws IOException;
+
+    PriceRecommendationDto getPriceRecommendationForVehicle(UUID engineId);
 }

@@ -1,9 +1,6 @@
 package com.maciu19.autobidder.api.auction;
 
-import com.maciu19.autobidder.api.auction.dto.AuctionResponseDto;
-import com.maciu19.autobidder.api.auction.dto.AuctionSummaryDto;
-import com.maciu19.autobidder.api.auction.dto.CreateAuctionRequest;
-import com.maciu19.autobidder.api.auction.dto.MediaAssetDto;
+import com.maciu19.autobidder.api.auction.dto.*;
 import com.maciu19.autobidder.api.auction.mapper.MediaAssetMapper;
 import com.maciu19.autobidder.api.auction.model.FileType;
 import com.maciu19.autobidder.api.auction.model.MediaAsset;
@@ -40,6 +37,13 @@ public class AuctionController {
         this.userService = userService;
         this.auctionService = auctionService;
         this.mediaAssetMapper = mediaAssetMapper;
+    }
+
+    @GetMapping("engine/{engineId}/prices/recommendation")
+    public ResponseEntity<PriceRecommendationDto> getPriceRecommendationForVehicle(@PathVariable UUID engineId) {
+        PriceRecommendationDto result = auctionService.getPriceRecommendationForVehicle(engineId);
+
+        return ResponseEntity.ok(result);
     }
 
     @GetMapping

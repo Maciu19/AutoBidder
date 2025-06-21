@@ -1,5 +1,6 @@
 package com.maciu19.autobidder.api.auction.repository;
 
+import com.maciu19.autobidder.api.auction.dto.AuctionDataPoint;
 import com.maciu19.autobidder.api.auction.model.Auction;
 import com.maciu19.autobidder.api.auction.model.AuctionStatus;
 import com.maciu19.autobidder.api.user.model.User;
@@ -41,4 +42,25 @@ public interface AuctionRepository extends JpaRepository<Auction, UUID> {
     List<Auction> findAuctionByUser(@Param("user") User user);
 
     List<Auction> findAllByStatusAndEndTimeBefore(AuctionStatus status, LocalDateTime now);
+
+    @Query("""
+           SELECT new com.maciu19.autobidder.api.auction.dto.AuctionDataPoint(
+               a.currentPrice,
+               vmg.id,
+               veo.id
+           )
+           FROM Auction a
+           JOIN a.vehicleEngineOption veo
+           JOIN veo.vehicleModelGeneration vmg
+           JOIN vmg.vehicleModel vm
+           JOIN vm.manufacturer m
+           WHERE m.id = :manufacturerId
+           AND vm.id = :modelId
+           AND a.currentPrice IS NOT NULL
+           AND a.status IN ('ACTIVE', 'ENDED')
+           """)
+    List<AuctionDataPoint> findDataPointsByManufacturerAndModel(
+            UUID manufacturerId,
+            UUID modelId
+    );
 }

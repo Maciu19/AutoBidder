@@ -9,6 +9,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -62,5 +63,25 @@ public interface AuctionRepository extends JpaRepository<Auction, UUID> {
     List<AuctionDataPoint> findDataPointsByManufacturerAndModel(
             UUID manufacturerId,
             UUID modelId
+    );
+
+    @Query("""
+           SELECT a FROM Auction a
+           JOIN a.vehicleEngineOption veo
+           JOIN veo.vehicleModelGeneration vmg
+           JOIN vmg.vehicleModel vm
+           JOIN vm.manufacturer m
+           WHERE a.status = 'ACTIVE'
+           AND m.id = :manufacturerId
+           AND vm.id = :modelId
+           AND a.id <> :excludeAuctionId
+           AND a.currentPrice BETWEEN :minPrice AND :maxPrice
+           """)
+    List<Auction> findSimilarActiveAuctions(
+            UUID manufacturerId,
+            UUID modelId,
+            UUID excludeAuctionId,
+            BigDecimal minPrice,
+            BigDecimal maxPrice
     );
 }

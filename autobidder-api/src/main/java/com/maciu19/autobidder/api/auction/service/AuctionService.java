@@ -36,4 +36,6 @@ public interface AuctionService {
     void removeMediaAssetFromAuction(UUID auctionId, Long mediaAssetId, User currentUser) throws IOException;
 
     PriceRecommendationDto getPriceRecommendationForVehicle(UUID engineId);
+
+    List<AuctionSummaryDto> findSimilarActiveAuctions(UUID auctionId);
 }

@@ -28,6 +28,7 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDateTime;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -255,6 +256,38 @@ public class AuctionServiceImpl implements AuctionService {
                 rangeStart.setScale(0, RoundingMode.HALF_UP),
                 rangeEnd.setScale(0, RoundingMode.HALF_UP)
         );
+    }
+
+    @Override
+    public List<AuctionSummaryDto> findSimilarActiveAuctions(UUID auctionId) {
+        Optional<Auction> currentAuctionOpt = auctionRepository.findById(auctionId);
+
+        if (currentAuctionOpt.isEmpty() || currentAuctionOpt.get().getCurrentPrice() == null) {
+            return Collections.emptyList();
+        }
+        Auction currentAuction = currentAuctionOpt.get();
+
+        BigDecimal priceMargin = new BigDecimal("0.25");
+        BigDecimal currentPrice = currentAuction.getCurrentPrice();
+        BigDecimal minPrice = currentPrice.subtract(currentPrice.multiply(priceMargin));
+        BigDecimal maxPrice = currentPrice.add(currentPrice.multiply(priceMargin));
+
+        var vehicleModel = currentAuction.getVehicleEngineOption()
+                .getVehicleModelGeneration()
+                .getVehicleModel();
+
+        UUID manufacturerId = vehicleModel.getManufacturer().getId();
+        UUID modelId = vehicleModel.getId();
+
+        List<Auction> similarAuctions = auctionRepository.findSimilarActiveAuctions(
+                manufacturerId,
+                modelId,
+                currentAuction.getId(),
+                minPrice,
+                maxPrice
+        );
+
+        return auctionMapper.toListSummaryDto(similarAuctions);
     }
 
     private BigDecimal calculateStandardDeviation(List<BigDecimal> prices, BigDecimal average) {

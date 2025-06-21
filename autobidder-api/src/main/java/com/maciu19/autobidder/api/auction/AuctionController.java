@@ -39,13 +39,6 @@ public class AuctionController {
         this.mediaAssetMapper = mediaAssetMapper;
     }
 
-    @GetMapping("engine/{engineId}/prices/recommendation")
-    public ResponseEntity<PriceRecommendationDto> getPriceRecommendationForVehicle(@PathVariable UUID engineId) {
-        PriceRecommendationDto result = auctionService.getPriceRecommendationForVehicle(engineId);
-
-        return ResponseEntity.ok(result);
-    }
-
     @GetMapping
     public ResponseEntity<List<AuctionSummaryDto>> getActiveAuctions() {
         List<AuctionSummaryDto> activeAuctions = auctionService.getActiveAuctions();
@@ -70,6 +63,19 @@ public class AuctionController {
         return ResponseEntity
                 .status(HttpStatus.CREATED)
                 .body(createdAuction);
+    }
+
+    @GetMapping("engine/{engineId}/prices/recommendation")
+    public ResponseEntity<PriceRecommendationDto> getPriceRecommendationForVehicle(@PathVariable UUID engineId) {
+        PriceRecommendationDto result = auctionService.getPriceRecommendationForVehicle(engineId);
+
+        return ResponseEntity.ok(result);
+    }
+
+    @GetMapping("/{id}/similar")
+    public ResponseEntity<List<AuctionSummaryDto>> getSimilarCars(@PathVariable UUID id) {
+        List<AuctionSummaryDto> similarAuctions = auctionService.findSimilarActiveAuctions(id);
+        return ResponseEntity.ok(similarAuctions);
     }
 
     @PostMapping("/{id}/media")

@@ -5,6 +5,7 @@ import com.maciu19.autobidder.api.auction.model.*;
 import com.maciu19.autobidder.api.auction.repository.MediaAssetRepository;
 import com.maciu19.autobidder.api.exception.exceptions.DuplicateResourceException;
 import com.maciu19.autobidder.api.exception.exceptions.ForbiddenResourceException;
+import com.maciu19.autobidder.api.exception.exceptions.ResourceConflictException;
 import com.maciu19.autobidder.api.exception.exceptions.ResourceNotFoundException;
 import com.maciu19.autobidder.api.auction.mapper.AuctionMapper;
 import com.maciu19.autobidder.api.shared.filestorage.FileStorageService;
@@ -94,28 +95,37 @@ public class AuctionServiceImpl implements AuctionService {
                 .findByIdWithDetails(request.vehicleEngineOptionId())
                 .orElseThrow(() -> new ResourceNotFoundException("Vehicle not found with id: " + request.vehicleEngineOptionId()));
 
-        Auction auction = new Auction();
+        Integer startYear = vehicle.getVehicleModelGeneration().getStartYear();
+        Integer endYear = vehicle.getVehicleModelGeneration().getEndYear();
 
-        auction.setSeller(seller);
-        auction.setVehicleEngineOption(vehicle);
-        auction.setStatus(AuctionStatus.PENDING);
-        auction.setVin(request.vin());
-        auction.setLocation(request.location());
-        auction.setStartingPrice(request.startingPrice());
-        auction.setSteeringWheelSide(request.steeringWheelside());
-        auction.setHasWarranty(request.hasWarranty());
-        auction.setNoCrashRegistered(request.noCrashRegistered());
-        auction.setMakeYear(request.makeYear());
-        auction.setMileage(request.mileage());
-        auction.setExteriorColor(request.exteriorColor());
-        auction.setInteriorColor(request.interiorColor());
-        auction.setDescription(request.description());
-        auction.setModifications(request.modifications());
-        auction.setKnownFlaws(request.knownFlaws());
-        auction.setRecentServiceHistory(request.recentServiceHistory());
-        auction.setOtherItemsIncluded(request.otherItemsIncluded());
-        auction.setOwnershipHistory(request.ownershipHistory());
-        auction.setFeatures(request.features());
+        if (startYear >= request.makeYear().getValue() || (endYear != null && endYear <= request.makeYear().getValue())) {
+            throw new ResourceConflictException("Make year " + request.makeYear().getValue() + " should be between vehicle model generation years " + startYear + " - " + endYear);
+        }
+
+        Auction auction = Auction.builder()
+                .seller(seller)
+                .vehicleEngineOption(vehicle)
+                .status(AuctionStatus.PENDING)
+                .vin(request.vin())
+                .title(request.title())
+                .location(request.location())
+                .startingPrice(request.startingPrice())
+                .currentPrice(request.startingPrice()) // initialize with startingPrice
+                .steeringWheelSide(request.steeringWheelside())
+                .hasWarranty(request.hasWarranty())
+                .noCrashRegistered(request.noCrashRegistered())
+                .makeYear(request.makeYear())
+                .mileage(request.mileage())
+                .exteriorColor(request.exteriorColor())
+                .interiorColor(request.interiorColor())
+                .description(request.description())
+                .modifications(request.modifications())
+                .knownFlaws(request.knownFlaws())
+                .recentServiceHistory(request.recentServiceHistory())
+                .otherItemsIncluded(request.otherItemsIncluded())
+                .ownershipHistory(request.ownershipHistory())
+                .features(request.features())
+                .build();
 
         Auction savedAuction = auctionRepository.save(auction);
 

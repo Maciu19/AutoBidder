@@ -17,6 +17,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 
 @Service
 public class GcsFileStorageService implements FileStorageService {
@@ -62,7 +63,7 @@ public class GcsFileStorageService implements FileStorageService {
 
         storage.create(blobInfo, file.getBytes());
 
-        return "https://storage.googleapis.com/" + bucketName + "/" + objectName;
+        return objectName;
     }
 
     @Override
@@ -83,6 +84,20 @@ public class GcsFileStorageService implements FileStorageService {
             }
         } catch (Exception e) {
             throw new IOException("Error deleting file from GCS: " + objectName, e);
+        }
+    }
+
+    public String generateSignedUrlForGet(String objectName) throws IOException {
+        if (objectName == null || objectName.isBlank()) {
+            throw new IOException("Cannot generate URL for an empty object name.");
+        }
+
+        BlobInfo blobInfo = BlobInfo.newBuilder(BlobId.of(bucketName, objectName)).build();
+
+        try {
+            return storage.signUrl(blobInfo, 15, TimeUnit.MINUTES, Storage.SignUrlOption.withV4Signature()).toString();
+        } catch (Exception e) {
+            throw new IOException("Failed to generate signed URL for object: " + objectName, e);
         }
     }
 

@@ -70,7 +70,7 @@ public class Auction {
             mappedBy = "auction",
             orphanRemoval = true
     )
-    private List<Bid> bids = new ArrayList<>();
+    @Singular private List<Bid> bids = new ArrayList<>();
 
     @Enumerated(EnumType.STRING)
     @Column(name = "steering_wheel_side", length = 50)
@@ -100,13 +100,13 @@ public class Auction {
             cascade = CascadeType.ALL,
             orphanRemoval = true
     )
-    private List<MediaAsset> mediaAssets = new ArrayList<>();
+    @Singular private List<MediaAsset> mediaAssets = new ArrayList<>();
 
     @ElementCollection(targetClass = Feature.class, fetch = FetchType.EAGER)
     @CollectionTable(name = "auction_features", joinColumns = @JoinColumn(name = "auction_id"))
     @Enumerated(EnumType.STRING)
     @Column(name = "feature", nullable = false)
-    private Set<Feature> features = new HashSet<>();
+    @Singular private Set<Feature> features = new HashSet<>();
 
     @Column(name = "title")
     private String title;

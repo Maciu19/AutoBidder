@@ -44,6 +44,10 @@ public record CreateAuctionRequest (
     @NotBlank(message = "Exterior color cannot be blank.")
     String interiorColor,
 
+    @NotBlank(message = "Title cannot be blank")
+    @Size(min = 10, message = "Title must be at least 10 characters long.")
+    String title,
+
     @NotBlank(message = "Description cannot be blank.")
     @Size(min = 50, message = "Description must be at least 50 characters long.")
     String description,

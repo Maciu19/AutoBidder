@@ -112,6 +112,30 @@ public class GlobalExceptionHandler {
         );
     }
 
+    @ExceptionHandler(IllegalArgumentException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ErrorResponseDto handleIllegalArgumentException(
+            IllegalStateException ex, HttpServletRequest request
+    ) {
+        return new ErrorResponseDto(
+                HttpStatus.BAD_REQUEST,
+                ex.getMessage(),
+                request.getRequestURI()
+        );
+    }
+
+    @ExceptionHandler(IllegalStateException.class)
+    @ResponseStatus(HttpStatus.CONFLICT)
+    public ErrorResponseDto handleIllegalStateException(
+            IllegalStateException ex, HttpServletRequest request
+    ) {
+        return new ErrorResponseDto(
+                HttpStatus.BAD_REQUEST,
+                ex.getMessage(),
+                request.getRequestURI()
+        );
+    }
+
     @ExceptionHandler(FileUploadFailedException.class)
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     public ErrorResponseDto handleFileUploadFailed(FileUploadFailedException ex, HttpServletRequest request) {

@@ -1,9 +1,6 @@
 package com.maciu19.autobidder.api.auction.service;
 
-import com.maciu19.autobidder.api.auction.dto.AuctionResponseDto;
-import com.maciu19.autobidder.api.auction.dto.AuctionSummaryDto;
-import com.maciu19.autobidder.api.auction.dto.CreateAuctionRequest;
-import com.maciu19.autobidder.api.auction.dto.PriceRecommendationDto;
+import com.maciu19.autobidder.api.auction.dto.*;
 import com.maciu19.autobidder.api.auction.model.FileType;
 import com.maciu19.autobidder.api.auction.model.MediaAsset;
 import com.maciu19.autobidder.api.user.model.User;
@@ -25,6 +22,12 @@ public interface AuctionService {
     AuctionResponseDto getAuctionById(UUID auctionId);
 
     AuctionResponseDto createAuction(CreateAuctionRequest request, User seller);
+
+    void updateAuction(AuctionUpdateDto request, User currentUser);
+
+    void publishAction(AuctionPublishDto dto, User currentUser);
+
+    void cancelAuction(UUID id, User currentUser);
 
     MediaAsset addMediaToAuction(UUID auctionId,
                                  User currentUser,

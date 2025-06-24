@@ -65,6 +65,36 @@ public class AuctionController {
                 .body(createdAuction);
     }
 
+    @PatchMapping
+    public ResponseEntity<?> updateAuction(
+            @RequestBody AuctionUpdateDto request,
+            @AuthenticationPrincipal Jwt jwt) {
+        User currentUser = userService.getCurrentUser();
+
+        auctionService.updateAuction(request, currentUser);
+        return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/publish")
+    public ResponseEntity<?> publishAuction(
+            @RequestBody AuctionPublishDto dto,
+            @AuthenticationPrincipal Jwt jwt) {
+        User currentUser = userService.getCurrentUser();
+
+        auctionService.publishAction(dto, currentUser);
+        return ResponseEntity.accepted().build();
+    }
+
+    @PostMapping("/{id}/cancel")
+    public ResponseEntity<?> cancelAuction(
+            @PathVariable UUID id,
+            @AuthenticationPrincipal Jwt jwt) {
+        User currentUser = userService.getCurrentUser();
+
+        auctionService.cancelAuction(id, currentUser);
+        return ResponseEntity.ok().build();
+    }
+
     @GetMapping("engine/{engineId}/prices/recommendation")
     public ResponseEntity<PriceRecommendationDto> getPriceRecommendationForVehicle(@PathVariable UUID engineId) {
         PriceRecommendationDto result = auctionService.getPriceRecommendationForVehicle(engineId);

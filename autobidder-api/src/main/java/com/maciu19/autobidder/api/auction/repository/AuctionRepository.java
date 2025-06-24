@@ -42,6 +42,8 @@ public interface AuctionRepository extends JpaRepository<Auction, UUID> {
             "WHERE s = :user")
     List<Auction> findAuctionByUser(@Param("user") User user);
 
+    List<Auction> findAllByStatusAndStartTimeBefore(AuctionStatus status, LocalDateTime now);
+
     List<Auction> findAllByStatusAndEndTimeBefore(AuctionStatus status, LocalDateTime now);
 
     @Query("""

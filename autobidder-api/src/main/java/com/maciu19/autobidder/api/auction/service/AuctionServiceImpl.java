@@ -137,6 +137,127 @@ public class AuctionServiceImpl implements AuctionService {
 
     @Override
     @Transactional
+    public void updateAuction(AuctionUpdateDto dto, User currentUser) {
+        Auction auction = auctionRepository.findById(dto.auctionId())
+                .orElseThrow(() -> new ResourceNotFoundException("Auction not found with id: " + dto.auctionId()));
+
+        if (!auction.getSeller().getId().equals(currentUser.getId())) {
+            throw new ForbiddenResourceException("You do not have permission to modify this auction.");
+        }
+
+        boolean hasBids = auction.getBids() != null && !auction.getBids().isEmpty();
+        if (hasBids) {
+            throw new IllegalStateException("Cannot update auction details after a bid has been placed.");
+        }
+
+        AuctionStatus status = auction.getStatus();
+        if (!(status == AuctionStatus.PENDING || status == AuctionStatus.SCHEDULED)) {
+            throw new IllegalStateException("Auction can only be updated when in PENDING or SCHEDULED status.");
+        }
+
+        if (dto.title() != null) {
+            auction.setTitle(dto.title());
+        }
+        if (dto.description() != null) {
+            auction.setDescription(dto.description());
+        }
+        if (dto.location() != null) {
+            auction.setLocation(dto.location());
+        }
+        if (dto.modifications() != null) {
+            auction.setModifications(dto.modifications());
+        }
+        if (dto.knownFlaws() != null) {
+            auction.setKnownFlaws(dto.knownFlaws());
+        }
+        if (dto.recentServiceHistory() != null) {
+            auction.setRecentServiceHistory(dto.recentServiceHistory());
+        }
+        if (dto.otherItemsIncluded() != null) {
+            auction.setOtherItemsIncluded(dto.otherItemsIncluded());
+        }
+        if (dto.ownershipHistory() != null) {
+            auction.setOwnershipHistory(dto.ownershipHistory());
+        }
+        if (dto.features() != null) {
+            auction.setFeatures(dto.features());
+        }
+        if (dto.endTime() != null) {
+            if (dto.endTime().isBefore(auction.getEndTime())) {
+                throw new IllegalArgumentException("Auction end time can only be extended, not shortened.");
+            }
+            if (dto.endTime().isBefore(auction.getStartTime())) {
+                throw new IllegalArgumentException("Auction end time must be after the start time.");
+            }
+
+            auction.setEndTime(dto.endTime());
+        }
+
+        auctionRepository.save(auction);
+    }
+
+    @Override
+    @Transactional
+    public void publishAction(AuctionPublishDto dto, User currentUser) {
+        Auction auction = auctionRepository.findById(dto.auctionId())
+                .orElseThrow(() -> new ResourceNotFoundException("Auction not found with id: " + dto.auctionId()));
+
+        if (!auction.getSeller().getId().equals(currentUser.getId())) {
+            throw new ForbiddenResourceException("You do not have permission to modify this auction.");
+        }
+
+        if (auction.getStatus() != AuctionStatus.PENDING) {
+            throw new IllegalStateException("Only auctions in PENDING status can be published. Current status: " + auction.getStatus());
+        }
+
+        if (dto.startTime() == null || dto.endTime() == null) {
+            throw new IllegalArgumentException("Start and end times must be provided to publish an auction.");
+        }
+
+        if (dto.startTime().isBefore(LocalDateTime.now())) {
+            throw new IllegalArgumentException("Auction start time cannot be in the past.");
+        }
+
+        if (dto.endTime().isBefore(dto.startTime().plusHours(1))) {
+            throw new IllegalArgumentException("Auction must end at least one hour after it starts.");
+        }
+
+        if (auction.getMediaAssets() == null || auction.getMediaAssets().isEmpty()) {
+            throw new IllegalStateException("Cannot publish an auction without at least one photo or video.");
+        }
+
+        auction.setStartTime(dto.startTime());
+        auction.setEndTime(dto.endTime());
+        auction.setStatus(AuctionStatus.SCHEDULED);
+
+        auctionRepository.save(auction);
+    }
+
+    @Override
+    @Transactional
+    public void cancelAuction(UUID id, User currentUser) {
+        Auction auction = auctionRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Auction not found with id: " + id));
+
+        if (!auction.getSeller().getId().equals(currentUser.getId())) {
+            throw new ForbiddenResourceException("You do not have permission to modify this auction.");
+        }
+
+        if (auction.getBids() != null && !auction.getBids().isEmpty()) {
+            throw new IllegalStateException("Cannot cancel an auction that has already received bids.");
+        }
+
+        AuctionStatus currentStatus = auction.getStatus();
+        if (!(currentStatus == AuctionStatus.PENDING || currentStatus == AuctionStatus.SCHEDULED || currentStatus == AuctionStatus.ACTIVE)) {
+            throw new IllegalStateException("An auction in the '" + currentStatus + "' state cannot be canceled.");
+        }
+
+        auction.setStatus(AuctionStatus.CANCELLED);
+        auctionRepository.save(auction);
+    }
+
+    @Override
+    @Transactional
     public MediaAsset addMediaToAuction(
             UUID auctionId, User currentUser,
             MultipartFile file, String title,
@@ -311,7 +432,28 @@ public class AuctionServiceImpl implements AuctionService {
 
     @Transactional
     @Scheduled(fixedRate = 60000)
-    public void closeExpiredAuctions() {
+    public void manageAuctionLifecycle() {
+        startScheduledAuctions();
+        closeExpiredAuctions();
+    }
+
+    private void startScheduledAuctions() {
+        List<Auction> auctionsToStart = auctionRepository
+                .findAllByStatusAndStartTimeBefore(AuctionStatus.SCHEDULED, LocalDateTime.now());
+
+        if (auctionsToStart.isEmpty()) {
+            return;
+        }
+
+        for (Auction auction : auctionsToStart) {
+            log.info("Auction id='{}' title='{}' is starting now.", auction.getId(), auction.getTitle());
+            auction.setStatus(AuctionStatus.ACTIVE);
+        }
+
+        auctionRepository.saveAll(auctionsToStart);
+    }
+
+    private void closeExpiredAuctions() {
         List<Auction> expiredAuctions = auctionRepository
                 .findAllByStatusAndEndTimeBefore(AuctionStatus.ACTIVE, LocalDateTime.now());
 
@@ -320,7 +462,7 @@ public class AuctionServiceImpl implements AuctionService {
         }
 
         for (Auction auction : expiredAuctions) {
-            log.warn("Auction id='{}' title='{}' has expired. Closing now.", auction.getId(), auction.getTitle());
+            log.info("Auction id='{}' title='{}' has expired. Closing now.", auction.getId(), auction.getTitle());
             auction.setStatus(AuctionStatus.ENDED);
         }
 

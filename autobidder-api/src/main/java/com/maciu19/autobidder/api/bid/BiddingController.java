@@ -1,16 +1,20 @@
 package com.maciu19.autobidder.api.bid;
 
+import com.maciu19.autobidder.api.bid.dto.BidDto;
 import com.maciu19.autobidder.api.bid.dto.BidRequestDto;
 import com.maciu19.autobidder.api.bid.service.BiddingService;
 import com.maciu19.autobidder.api.user.model.User;
 import com.maciu19.autobidder.api.user.service.UserService;
-import org.springframework.messaging.handler.annotation.MessageMapping;
-import org.springframework.messaging.handler.annotation.Payload;
-import org.springframework.stereotype.Controller;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.security.Principal;
 
-@Controller
+@RestController
+@RequestMapping("/bid")
 public class BiddingController {
 
     private final UserService userService;
@@ -23,13 +27,11 @@ public class BiddingController {
         this.biddingService = biddingService;
     }
 
-    @MessageMapping("/placeBid")
-    public void placeBid(@Payload BidRequestDto bidRequest, Principal principal) {
-        if (principal == null) {
-            return;
-        }
-
+    @PostMapping("/placeBid")
+    public ResponseEntity<BidDto> placeBid(@RequestBody BidRequestDto bidRequest) {
         User bidder = userService.getCurrentUser();
-        biddingService.placeBid(bidRequest, bidder);
+
+        BidDto result = biddingService.placeBid(bidRequest, bidder);
+        return ResponseEntity.ok(result);
     }
 }

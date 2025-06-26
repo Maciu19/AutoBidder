@@ -4,7 +4,9 @@ import com.maciu19.autobidder.api.auction.dto.AuctionPriceUpdateDto;
 import com.maciu19.autobidder.api.auction.model.Auction;
 import com.maciu19.autobidder.api.auction.model.AuctionStatus;
 import com.maciu19.autobidder.api.auction.repository.AuctionRepository;
+import com.maciu19.autobidder.api.bid.dto.BidDto;
 import com.maciu19.autobidder.api.bid.dto.BidRequestDto;
+import com.maciu19.autobidder.api.bid.mapper.BidMapper;
 import com.maciu19.autobidder.api.bid.model.Bid;
 import com.maciu19.autobidder.api.bid.repository.BidRepository;
 import com.maciu19.autobidder.api.exception.exceptions.ForbiddenResourceException;
@@ -24,20 +26,23 @@ public class BiddingServiceImpl implements BiddingService {
     private final UserMapper userMapper;
     private final SimpMessagingTemplate simpMessagingTemplate;
     private final BidRepository bidRepository;
+    private final BidMapper bidMapper;
 
     public BiddingServiceImpl(
             AuctionRepository auctionRepository,
             UserMapper userMapper,
             SimpMessagingTemplate simpMessagingTemplate,
-            BidRepository bidRepository) {
+            BidRepository bidRepository,
+            BidMapper bidMapper) {
         this.auctionRepository = auctionRepository;
         this.userMapper = userMapper;
         this.simpMessagingTemplate = simpMessagingTemplate;
         this.bidRepository = bidRepository;
+        this.bidMapper = bidMapper;
     }
 
     @Override
-    public void placeBid(BidRequestDto bidRequest, User bidder) {
+    public BidDto placeBid(BidRequestDto bidRequest, User bidder) {
         Auction auction = auctionRepository.findByIdWithDetails(bidRequest.auctionId())
                 .orElseThrow(() -> new ResourceNotFoundException("Auction not found with id: " + bidRequest.auctionId()));
 
@@ -77,6 +82,8 @@ public class BiddingServiceImpl implements BiddingService {
                 auction.getBids().size()
         );
         simpMessagingTemplate.convertAndSend(destination, updateDto);
+
+        return bidMapper.toDto(newBid);
     }
 
     @Override

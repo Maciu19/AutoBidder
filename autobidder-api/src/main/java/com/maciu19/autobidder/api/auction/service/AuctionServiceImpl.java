@@ -218,10 +218,6 @@ public class AuctionServiceImpl implements AuctionService {
             throw new IllegalArgumentException("Auction start time cannot be in the past.");
         }
 
-        if (dto.endTime().isBefore(dto.startTime().plusHours(1))) {
-            throw new IllegalArgumentException("Auction must end at least one hour after it starts.");
-        }
-
         if (auction.getMediaAssets() == null || auction.getMediaAssets().isEmpty()) {
             throw new IllegalStateException("Cannot publish an auction without at least one photo or video.");
         }

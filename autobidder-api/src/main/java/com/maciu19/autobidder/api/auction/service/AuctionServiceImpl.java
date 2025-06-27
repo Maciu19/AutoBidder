@@ -9,6 +9,7 @@ import com.maciu19.autobidder.api.exception.exceptions.ResourceConflictException
 import com.maciu19.autobidder.api.exception.exceptions.ResourceNotFoundException;
 import com.maciu19.autobidder.api.auction.mapper.AuctionMapper;
 import com.maciu19.autobidder.api.shared.filestorage.FileStorageService;
+import com.maciu19.autobidder.api.user.mapper.UserMapper;
 import com.maciu19.autobidder.api.user.model.User;
 import com.maciu19.autobidder.api.vehicle.dto.VehicleInfo;
 import com.maciu19.autobidder.api.vehicle.model.VehicleEngineOption;
@@ -21,6 +22,7 @@ import jakarta.transaction.Transactional;
 import org.hibernate.Hibernate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -46,6 +48,8 @@ public class AuctionServiceImpl implements AuctionService {
     private final MediaAssetRepository mediaAssetRepository;
     private final FileStorageService fileStorageService;
     private final AuctionMapper auctionMapper;
+    private final UserMapper userMapper;
+    private final SimpMessagingTemplate simpMessagingTemplate;
 
     public AuctionServiceImpl(
             VehicleService vehicleService,
@@ -53,13 +57,17 @@ public class AuctionServiceImpl implements AuctionService {
             AuctionRepository auctionRepository,
             MediaAssetRepository mediaAssetRepository,
             FileStorageService fileStorageService,
-            AuctionMapper auctionMapper) {
+            AuctionMapper auctionMapper,
+            UserMapper userMapper,
+            SimpMessagingTemplate simpMessagingTemplate) {
         this.vehicleService = vehicleService;
         this.vehicleEngineOptionRepository = vehicleEngineOptionRepository;
         this.auctionRepository = auctionRepository;
         this.mediaAssetRepository = mediaAssetRepository;
         this.fileStorageService = fileStorageService;
         this.auctionMapper = auctionMapper;
+        this.userMapper = userMapper;
+        this.simpMessagingTemplate = simpMessagingTemplate;
     }
 
     @Override
@@ -225,8 +233,9 @@ public class AuctionServiceImpl implements AuctionService {
         auction.setStartTime(dto.startTime());
         auction.setEndTime(dto.endTime());
         auction.setStatus(AuctionStatus.SCHEDULED);
-
         auctionRepository.save(auction);
+
+        sendWebSocketNotification(auction);
     }
 
     @Override
@@ -244,12 +253,14 @@ public class AuctionServiceImpl implements AuctionService {
         }
 
         AuctionStatus currentStatus = auction.getStatus();
-        if (!(currentStatus == AuctionStatus.PENDING || currentStatus == AuctionStatus.SCHEDULED || currentStatus == AuctionStatus.ACTIVE)) {
+        if (!(currentStatus == AuctionStatus.PENDING || currentStatus == AuctionStatus.SCHEDULED)) {
             throw new IllegalStateException("An auction in the '" + currentStatus + "' state cannot be canceled.");
         }
 
         auction.setStatus(AuctionStatus.CANCELLED);
         auctionRepository.save(auction);
+
+        sendWebSocketNotification(auction);
     }
 
     @Override
@@ -427,7 +438,7 @@ public class AuctionServiceImpl implements AuctionService {
     }
 
     @Transactional
-    @Scheduled(fixedRate = 60000)
+    @Scheduled(fixedRate = 30000)
     public void manageAuctionLifecycle() {
         startScheduledAuctions();
         closeExpiredAuctions();
@@ -447,6 +458,10 @@ public class AuctionServiceImpl implements AuctionService {
         }
 
         auctionRepository.saveAll(auctionsToStart);
+
+        for (Auction auction : auctionsToStart) {
+            sendWebSocketNotification(auction);
+        }
     }
 
     private void closeExpiredAuctions() {
@@ -463,5 +478,34 @@ public class AuctionServiceImpl implements AuctionService {
         }
 
         auctionRepository.saveAll(expiredAuctions);
+
+        for (Auction auction : expiredAuctions) {
+            sendWebSocketNotification(auction);
+        }
+    }
+
+    private void sendWebSocketNotification(Auction auction) {
+        try {
+            String destination = "/topic/auctions/statusUpdate";
+
+            AuctionStatusUpdateDto updateDto = new AuctionStatusUpdateDto(
+                    auction.getId(),
+                    auction.getCurrentPrice(),
+                    auction.getWinningUser() != null ? userMapper.toDto(auction.getWinningUser()) : null,
+                    auction.getBids().size(),
+                    auction.getStatus()
+            );
+
+            log.info("Sending WebSocket notification for auction {} to destination {}",
+                    auction.getId(), destination);
+
+            simpMessagingTemplate.convertAndSend(destination, updateDto);
+
+            log.info("WebSocket notification sent successfully for auction {}", auction.getId());
+
+        } catch (Exception e) {
+            log.error("Failed to send WebSocket notification for auction {}: {}",
+                    auction.getId(), e.getMessage(), e);
+        }
     }
 }

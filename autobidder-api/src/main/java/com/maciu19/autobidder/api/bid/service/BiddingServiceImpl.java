@@ -74,7 +74,7 @@ public class BiddingServiceImpl implements BiddingService {
         auction.getBids().add(newBid);
         auctionRepository.save(auction);
 
-        String destination = "/topic/auctions/" + auction.getId();
+        String destination = "/topic/auctions/bidUpdate";
         AuctionPriceUpdateDto updateDto = new AuctionPriceUpdateDto(
                 auction.getId(),
                 auction.getCurrentPrice(),

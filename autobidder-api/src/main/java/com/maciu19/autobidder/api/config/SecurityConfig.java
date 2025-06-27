@@ -39,24 +39,20 @@ public class SecurityConfig {
         http
                 .securityMatcher(new AntPathRequestMatcher("/ws/**"))
                 .cors(Customizer.withDefaults())
-                .authorizeHttpRequests(req ->
-                        req.anyRequest().permitAll()
-                )
+                .authorizeHttpRequests(req -> req.anyRequest().permitAll())
                 .csrf(AbstractHttpConfigurer::disable);
 
         return http.build();
     }
 
+
     @Bean
     @Order(2)
     public SecurityFilterChain apiSecurityFilterChain(HttpSecurity http) throws Exception {
         http
-                .authorizeHttpRequests(req ->
-                        req.anyRequest().authenticated()
-                )
+                .authorizeHttpRequests(req -> req.anyRequest().authenticated())
                 .oauth2ResourceServer(auth ->
-                        auth.jwt(token -> token.jwtAuthenticationConverter(
-                                new KeycloakJwtAuthConverter("autobidder-backend-service")))
+                        auth.jwt(token -> token.jwtAuthenticationConverter(keycloakJwtAuthConverter()))
                 )
                 .sessionManagement(
                         session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
@@ -64,7 +60,6 @@ public class SecurityConfig {
                 .addFilterAfter(new UserSyncFilter(userService), BearerTokenAuthenticationFilter.class)
                 .csrf(AbstractHttpConfigurer::disable)
                 .cors(Customizer.withDefaults());
-
 
         return http.build();
     }
@@ -81,5 +76,10 @@ public class SecurityConfig {
         source.registerCorsConfiguration("/**", configuration);
 
         return source;
+    }
+
+    @Bean
+    public KeycloakJwtAuthConverter keycloakJwtAuthConverter() {
+        return new KeycloakJwtAuthConverter("autobidder-backend-service");
     }
 }

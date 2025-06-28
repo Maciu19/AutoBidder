@@ -43,6 +43,8 @@ public class AuctionMapper {
         return new AuctionSummaryDto(
                 auction.getId(),
                 auction.getTitle(),
+                userMapper.toDto(auction.getSeller()),
+                userMapper.toDto(auction.getWinningUser()),
                 auction.getStatus(),
                 auction.getStartingPrice(),
                 auction.getCurrentPrice(),

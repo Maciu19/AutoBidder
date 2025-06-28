@@ -74,16 +74,12 @@ public class BiddingServiceImpl implements BiddingService {
         auction.getBids().add(newBid);
         auctionRepository.save(auction);
 
-        String destination = "/topic/auctions/bidUpdate";
-        AuctionPriceUpdateDto updateDto = new AuctionPriceUpdateDto(
-                auction.getId(),
-                auction.getCurrentPrice(),
-                userMapper.toDto(auction.getWinningUser()),
-                auction.getBids().size()
-        );
-        simpMessagingTemplate.convertAndSend(destination, updateDto);
+        BidDto bidDto = bidMapper.toDto(newBid);
 
-        return bidMapper.toDto(newBid);
+        String destination = "/topic/auctions/bidUpdate";
+        simpMessagingTemplate.convertAndSend(destination, bidDto);
+
+        return bidDto;
     }
 
     @Override

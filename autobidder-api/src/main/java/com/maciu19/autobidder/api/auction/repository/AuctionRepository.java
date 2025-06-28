@@ -32,19 +32,39 @@ public interface AuctionRepository extends JpaRepository<Auction, UUID> {
 
     @Query("SELECT a FROM Auction a " +
             "JOIN FETCH a.seller s " +
+            "LEFT JOIN FETCH a.winningUser w " +
             "LEFT JOIN FETCH a.bids " +
             "WHERE a.status = :status")
     List<Auction> findActiveAuctionsForList(@Param("status") AuctionStatus status);
 
     @Query("SELECT a FROM Auction a " +
             "JOIN FETCH a.seller s " +
+            "LEFT JOIN FETCH a.winningUser w " +
             "LEFT JOIN FETCH a.bids " +
             "WHERE s = :user")
     List<Auction> findAuctionByUser(@Param("user") User user);
 
-    List<Auction> findAllByStatusAndStartTimeBefore(AuctionStatus status, LocalDateTime now);
+    @Query("SELECT a FROM Auction a " +
+            " JOIN FETCH a.seller s " +
+            " LEFT JOIN FETCH a.winningUser w " +
+            " LEFT JOIN FETCH a.bids b " +
+            " WHERE a.status = :status " +
+            "   AND a.startTime <= :now")
+    List<Auction> findAllByStatusAndStartTimeBeforeForList(
+            @Param("status") AuctionStatus status,
+            @Param("now")    LocalDateTime now
+    );
 
-    List<Auction> findAllByStatusAndEndTimeBefore(AuctionStatus status, LocalDateTime now);
+    @Query("SELECT a FROM Auction a " +
+            " JOIN FETCH a.seller s " +
+            " LEFT JOIN FETCH a.winningUser w " +
+            " LEFT JOIN FETCH a.bids b " +
+            " WHERE a.status = :status " +
+            "   AND a.endTime <= :now")
+    List<Auction> findAllByStatusAndEndTimeBeforeForList(
+            @Param("status") AuctionStatus status,
+            @Param("now")    LocalDateTime now
+    );
 
     @Query("""
            SELECT new com.maciu19.autobidder.api.auction.dto.AuctionDataPoint(
@@ -69,6 +89,8 @@ public interface AuctionRepository extends JpaRepository<Auction, UUID> {
 
     @Query("""
            SELECT a FROM Auction a
+           JOIN FETCH a.seller s
+           LEFT JOIN FETCH a.winningUser w
            JOIN a.vehicleEngineOption veo
            JOIN veo.vehicleModelGeneration vmg
            JOIN vmg.vehicleModel vm

@@ -446,7 +446,7 @@ public class AuctionServiceImpl implements AuctionService {
 
     private void startScheduledAuctions() {
         List<Auction> auctionsToStart = auctionRepository
-                .findAllByStatusAndStartTimeBefore(AuctionStatus.SCHEDULED, LocalDateTime.now());
+                .findAllByStatusAndStartTimeBeforeForList(AuctionStatus.SCHEDULED, LocalDateTime.now());
 
         if (auctionsToStart.isEmpty()) {
             return;
@@ -466,7 +466,7 @@ public class AuctionServiceImpl implements AuctionService {
 
     private void closeExpiredAuctions() {
         List<Auction> expiredAuctions = auctionRepository
-                .findAllByStatusAndEndTimeBefore(AuctionStatus.ACTIVE, LocalDateTime.now());
+                .findAllByStatusAndEndTimeBeforeForList(AuctionStatus.ACTIVE, LocalDateTime.now());
 
         if (expiredAuctions.isEmpty()) {
             return;
@@ -488,18 +488,10 @@ public class AuctionServiceImpl implements AuctionService {
         try {
             String destination = "/topic/auctions/statusUpdate";
 
-            AuctionStatusUpdateDto updateDto = new AuctionStatusUpdateDto(
-                    auction.getId(),
-                    auction.getCurrentPrice(),
-                    auction.getWinningUser() != null ? userMapper.toDto(auction.getWinningUser()) : null,
-                    auction.getBids().size(),
-                    auction.getStatus()
-            );
-
             log.info("Sending WebSocket notification for auction {} to destination {}",
                     auction.getId(), destination);
 
-            simpMessagingTemplate.convertAndSend(destination, updateDto);
+            simpMessagingTemplate.convertAndSend(destination, auctionMapper.toSummaryDto(auction));
 
             log.info("WebSocket notification sent successfully for auction {}", auction.getId());
 

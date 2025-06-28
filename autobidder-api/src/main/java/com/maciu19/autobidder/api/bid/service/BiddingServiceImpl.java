@@ -12,10 +12,15 @@ import com.maciu19.autobidder.api.bid.repository.BidRepository;
 import com.maciu19.autobidder.api.exception.exceptions.ForbiddenResourceException;
 import com.maciu19.autobidder.api.exception.exceptions.ResourceConflictException;
 import com.maciu19.autobidder.api.exception.exceptions.ResourceNotFoundException;
+import com.maciu19.autobidder.api.notification.model.NotificationType;
+import com.maciu19.autobidder.api.notification.service.NotificationService;
 import com.maciu19.autobidder.api.user.mapper.UserMapper;
 import com.maciu19.autobidder.api.user.model.User;
+import jakarta.transaction.Transactional;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import java.util.List;
 
@@ -27,27 +32,31 @@ public class BiddingServiceImpl implements BiddingService {
     private final SimpMessagingTemplate simpMessagingTemplate;
     private final BidRepository bidRepository;
     private final BidMapper bidMapper;
+    private final NotificationService notificationService;
 
     public BiddingServiceImpl(
             AuctionRepository auctionRepository,
             UserMapper userMapper,
             SimpMessagingTemplate simpMessagingTemplate,
             BidRepository bidRepository,
-            BidMapper bidMapper) {
+            BidMapper bidMapper,
+            NotificationService notificationService) {
         this.auctionRepository = auctionRepository;
         this.userMapper = userMapper;
         this.simpMessagingTemplate = simpMessagingTemplate;
         this.bidRepository = bidRepository;
         this.bidMapper = bidMapper;
+        this.notificationService = notificationService;
     }
 
     @Override
+    @Transactional
     public BidDto placeBid(BidRequestDto bidRequest, User bidder) {
         Auction auction = auctionRepository.findByIdWithDetails(bidRequest.auctionId())
                 .orElseThrow(() -> new ResourceNotFoundException("Auction not found with id: " + bidRequest.auctionId()));
 
         if (auction.getStatus() != AuctionStatus.ACTIVE) {
-                throw new ResourceConflictException("Bids can only be placed on active auctions.");
+            throw new ResourceConflictException("Bids can only be placed on active auctions.");
         }
 
         if (auction.getSeller().getId().equals(bidder.getId())) {
@@ -61,6 +70,8 @@ public class BiddingServiceImpl implements BiddingService {
         if (auction.getWinningUser() != null && auction.getWinningUser().getId().equals(bidder.getId())) {
             throw new ResourceConflictException("You are already the highest bidder.");
         }
+
+        User outbidderUser = auction.getWinningUser();
 
         auction.setCurrentPrice(bidRequest.amount());
         auction.setWinningUser(bidder);
@@ -76,8 +87,26 @@ public class BiddingServiceImpl implements BiddingService {
 
         BidDto bidDto = bidMapper.toDto(newBid);
 
-        String destination = "/topic/auctions/bidUpdate";
-        simpMessagingTemplate.convertAndSend(destination, bidDto);
+        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+            @Override
+            public void afterCommit() {
+                simpMessagingTemplate.convertAndSend("/topic/auctions/bidUpdate", bidDto);
+
+                notificationService.createUserSpecificNotification(
+                        auction.getSeller().getId(),
+                        NotificationType.NEW_BID,
+                        "A new bid of " + bidDto.bidAmount() + " was placed on your auction '" + auction.getTitle() + "'."
+                );
+
+                if (outbidderUser != null) {
+                    notificationService.createUserSpecificNotification(
+                            outbidderUser.getId(),
+                            NotificationType.OUTBID,
+                            "You have been outbid on '" + auction.getTitle() + "'with " + bidDto.bidAmount() + "."
+                    );
+                }
+            }
+        });
 
         return bidDto;
     }

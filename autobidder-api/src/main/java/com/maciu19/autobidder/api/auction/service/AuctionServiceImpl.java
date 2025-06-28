@@ -8,6 +8,8 @@ import com.maciu19.autobidder.api.exception.exceptions.ForbiddenResourceExceptio
 import com.maciu19.autobidder.api.exception.exceptions.ResourceConflictException;
 import com.maciu19.autobidder.api.exception.exceptions.ResourceNotFoundException;
 import com.maciu19.autobidder.api.auction.mapper.AuctionMapper;
+import com.maciu19.autobidder.api.notification.model.NotificationType;
+import com.maciu19.autobidder.api.notification.service.NotificationService;
 import com.maciu19.autobidder.api.shared.filestorage.FileStorageService;
 import com.maciu19.autobidder.api.user.mapper.UserMapper;
 import com.maciu19.autobidder.api.user.model.User;
@@ -50,6 +52,7 @@ public class AuctionServiceImpl implements AuctionService {
     private final AuctionMapper auctionMapper;
     private final UserMapper userMapper;
     private final SimpMessagingTemplate simpMessagingTemplate;
+    private final NotificationService notificationService;
 
     public AuctionServiceImpl(
             VehicleService vehicleService,
@@ -59,7 +62,8 @@ public class AuctionServiceImpl implements AuctionService {
             FileStorageService fileStorageService,
             AuctionMapper auctionMapper,
             UserMapper userMapper,
-            SimpMessagingTemplate simpMessagingTemplate) {
+            SimpMessagingTemplate simpMessagingTemplate,
+            NotificationService notificationService) {
         this.vehicleService = vehicleService;
         this.vehicleEngineOptionRepository = vehicleEngineOptionRepository;
         this.auctionRepository = auctionRepository;
@@ -68,6 +72,7 @@ public class AuctionServiceImpl implements AuctionService {
         this.auctionMapper = auctionMapper;
         this.userMapper = userMapper;
         this.simpMessagingTemplate = simpMessagingTemplate;
+        this.notificationService = notificationService;
     }
 
     @Override
@@ -486,14 +491,11 @@ public class AuctionServiceImpl implements AuctionService {
 
     private void sendWebSocketNotification(Auction auction) {
         try {
-            String destination = "/topic/auctions/statusUpdate";
+            simpMessagingTemplate.convertAndSend("/topic/auctions/statusUpdate", auctionMapper.toSummaryDto(auction));
 
-            log.info("Sending WebSocket notification for auction {} to destination {}",
-                    auction.getId(), destination);
-
-            simpMessagingTemplate.convertAndSend(destination, auctionMapper.toSummaryDto(auction));
-
-            log.info("WebSocket notification sent successfully for auction {}", auction.getId());
+            notificationService.createGlobalNotification(
+                    "A new auction was created with title " + auction.getTitle(),
+                    NotificationType.AUCTION_CREATED);
 
         } catch (Exception e) {
             log.error("Failed to send WebSocket notification for auction {}: {}",

@@ -8,9 +8,7 @@ import java.util.UUID;
 
 public interface NotificationService {
 
-    void createUserSpecificNotification(UUID userId, NotificationType type, String payload);
-
-    void createGlobalNotification(String payload, NotificationType type);
+    Notification createAndSaveNotification(UUID userId, NotificationType type, String payload);
 
     void markNotificationAsRead(UUID userId, UUID notificationId);
 

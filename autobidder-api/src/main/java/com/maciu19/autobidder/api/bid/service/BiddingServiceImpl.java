@@ -5,18 +5,20 @@ import com.maciu19.autobidder.api.auction.model.Auction;
 import com.maciu19.autobidder.api.auction.model.AuctionStatus;
 import com.maciu19.autobidder.api.auction.repository.AuctionRepository;
 import com.maciu19.autobidder.api.bid.dto.BidDto;
+import com.maciu19.autobidder.api.bid.dto.BidPlacedEvent;
 import com.maciu19.autobidder.api.bid.dto.BidRequestDto;
 import com.maciu19.autobidder.api.bid.mapper.BidMapper;
 import com.maciu19.autobidder.api.bid.model.Bid;
 import com.maciu19.autobidder.api.bid.repository.BidRepository;
+import com.maciu19.autobidder.api.config.RabbitMQConfig;
 import com.maciu19.autobidder.api.exception.exceptions.ForbiddenResourceException;
 import com.maciu19.autobidder.api.exception.exceptions.ResourceConflictException;
 import com.maciu19.autobidder.api.exception.exceptions.ResourceNotFoundException;
-import com.maciu19.autobidder.api.notification.model.NotificationType;
 import com.maciu19.autobidder.api.notification.service.NotificationService;
 import com.maciu19.autobidder.api.user.mapper.UserMapper;
 import com.maciu19.autobidder.api.user.model.User;
 import jakarta.transaction.Transactional;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.support.TransactionSynchronization;
@@ -32,7 +34,7 @@ public class BiddingServiceImpl implements BiddingService {
     private final SimpMessagingTemplate simpMessagingTemplate;
     private final BidRepository bidRepository;
     private final BidMapper bidMapper;
-    private final NotificationService notificationService;
+    private final RabbitTemplate rabbitTemplate;
 
     public BiddingServiceImpl(
             AuctionRepository auctionRepository,
@@ -40,13 +42,13 @@ public class BiddingServiceImpl implements BiddingService {
             SimpMessagingTemplate simpMessagingTemplate,
             BidRepository bidRepository,
             BidMapper bidMapper,
-            NotificationService notificationService) {
+            RabbitTemplate rabbitTemplate) {
         this.auctionRepository = auctionRepository;
         this.userMapper = userMapper;
         this.simpMessagingTemplate = simpMessagingTemplate;
         this.bidRepository = bidRepository;
         this.bidMapper = bidMapper;
-        this.notificationService = notificationService;
+        this.rabbitTemplate = rabbitTemplate;
     }
 
     @Override
@@ -76,35 +78,36 @@ public class BiddingServiceImpl implements BiddingService {
         auction.setCurrentPrice(bidRequest.amount());
         auction.setWinningUser(bidder);
 
-        Bid newBid = Bid.builder()
+        Bid transientBid = Bid.builder()
                 .auction(auction)
                 .user(bidder)
                 .bidAmount(bidRequest.amount())
                 .build();
 
-        auction.getBids().add(newBid);
+        Bid savedBid = bidRepository.save(transientBid);
+
+        auction.getBids().add(savedBid);
         auctionRepository.save(auction);
 
-        BidDto bidDto = bidMapper.toDto(newBid);
+        BidDto bidDto = bidMapper.toDto(savedBid);
+
+        BidPlacedEvent event = new BidPlacedEvent(
+                auction.getSeller().getId(),
+                (outbidderUser != null) ? outbidderUser.getId() : null,
+                bidRequest.amount(),
+                auction.getTitle()
+        );
 
         TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
             @Override
             public void afterCommit() {
                 simpMessagingTemplate.convertAndSend("/topic/auctions/bidUpdate", bidDto);
 
-                notificationService.createUserSpecificNotification(
-                        auction.getSeller().getId(),
-                        NotificationType.NEW_BID,
-                        "A new bid of " + bidDto.bidAmount() + " was placed on your auction '" + auction.getTitle() + "'."
+                rabbitTemplate.convertAndSend(
+                        RabbitMQConfig.EXCHANGE_NAME,
+                        RabbitMQConfig.ROUTING_KEY_BID_PLACED,
+                        event
                 );
-
-                if (outbidderUser != null) {
-                    notificationService.createUserSpecificNotification(
-                            outbidderUser.getId(),
-                            NotificationType.OUTBID,
-                            "You have been outbid on '" + auction.getTitle() + "'with " + bidDto.bidAmount() + "."
-                    );
-                }
             }
         });
 

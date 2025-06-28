@@ -493,9 +493,9 @@ public class AuctionServiceImpl implements AuctionService {
         try {
             simpMessagingTemplate.convertAndSend("/topic/auctions/statusUpdate", auctionMapper.toSummaryDto(auction));
 
-            notificationService.createGlobalNotification(
-                    "A new auction was created with title " + auction.getTitle(),
-                    NotificationType.AUCTION_CREATED);
+//            notificationService.createGlobalNotification(
+//                    "A new auction was created with title " + auction.getTitle(),
+//                    NotificationType.AUCTION_CREATED);
 
         } catch (Exception e) {
             log.error("Failed to send WebSocket notification for auction {}: {}",

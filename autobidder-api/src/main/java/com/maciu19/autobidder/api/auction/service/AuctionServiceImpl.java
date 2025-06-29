@@ -41,8 +41,8 @@ import java.util.UUID;
 @Service
 public class AuctionServiceImpl implements AuctionService {
 
-    private static final int MINIMUM_DATA_POINTS = 5;
     private final static Logger log = LoggerFactory.getLogger(AuctionServiceImpl.class);
+    private static final int MINIMUM_DATA_POINTS = 3;
 
     private final VehicleService vehicleService;
     private final VehicleEngineOptionRepository vehicleEngineOptionRepository;
@@ -368,7 +368,7 @@ public class AuctionServiceImpl implements AuctionService {
         List<BigDecimal> finalPrices = currentData.stream().map(AuctionDataPoint::price).toList();
 
         // Check if our final dataset is still large enough
-        if (finalPrices.size() < MINIMUM_DATA_POINTS / 2) {
+        if (finalPrices.isEmpty()) {
             return PriceRecommendationDto.notEnoughData();
         }
 
@@ -410,7 +410,7 @@ public class AuctionServiceImpl implements AuctionService {
         }
         Auction currentAuction = currentAuctionOpt.get();
 
-        BigDecimal priceMargin = new BigDecimal("0.25");
+        BigDecimal priceMargin = new BigDecimal("0.40");
         BigDecimal currentPrice = currentAuction.getCurrentPrice();
         BigDecimal minPrice = currentPrice.subtract(currentPrice.multiply(priceMargin));
         BigDecimal maxPrice = currentPrice.add(currentPrice.multiply(priceMargin));

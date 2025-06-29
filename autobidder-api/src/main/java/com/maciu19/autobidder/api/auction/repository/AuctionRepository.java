@@ -80,7 +80,7 @@ public interface AuctionRepository extends JpaRepository<Auction, UUID> {
            WHERE m.id = :manufacturerId
            AND vm.id = :modelId
            AND a.currentPrice IS NOT NULL
-           AND a.status IN ('ACTIVE', 'ENDED')
+           AND a.status IN ('ACTIVE', 'ENDED', 'CANCELLED')
            """)
     List<AuctionDataPoint> findDataPointsByManufacturerAndModel(
             UUID manufacturerId,

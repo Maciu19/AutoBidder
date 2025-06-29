@@ -62,3 +62,7 @@ gcp:
 
   credentials:
     location: gcp-credentials.json
+
+stripe:
+  api:
+    key: ${STRIPE_KEY}

@@ -23,7 +23,7 @@ public class NotificationEventListener {
         Notification sellerNotification = notificationService.createAndSaveNotification(
                 event.sellerId(),
                 NotificationType.NEW_BID,
-                "A new bid of " + event.bidAmount() + " was placed on your auction '" + event.auctionTitle() + "'."
+                "A new bid of " + event.bidAmount() + "€ was placed on your auction '" + event.auctionTitle() + "'."
         );
 
         messagingTemplate.convertAndSend(
